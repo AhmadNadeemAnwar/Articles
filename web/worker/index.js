@@ -134,7 +134,9 @@ async function cachedDocument(request, ctx, contentType, build) {
 /** Marks the API's "there is no such post" answer, as opposed to "could not find out". */
 const GONE = Symbol('gone')
 
-const metaKey = (slug) => new Request(`https://post-meta.internal/v3/${encodeURIComponent(slug)}`)
+// The version is bumped whenever what is stored changes, including the site's name (it is part of each
+// saved title). v4: the site became Articles, so entries saved while it was still Inkwell are not reused.
+const metaKey = (slug) => new Request(`https://post-meta.internal/v4/${encodeURIComponent(slug)}`)
 
 /** Asks the API about a post and remembers the answer. Forgets it if the post is gone. */
 async function refreshPost(ctx, site, slug, timeoutMs) {
