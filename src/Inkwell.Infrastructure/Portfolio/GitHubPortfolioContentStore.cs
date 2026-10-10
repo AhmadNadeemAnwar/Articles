@@ -156,7 +156,7 @@ public sealed partial class GitHubPortfolioContentStore : IPortfolioContentStore
         var request = new HttpRequestMessage(method, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Options.Token);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("inkwell-admin", "1.0"));
+        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("articles-admin", "1.0"));
         request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
         if (body is not null) request.Content = JsonContent.Create(body);
 

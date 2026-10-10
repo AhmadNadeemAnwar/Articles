@@ -20,8 +20,6 @@
     "SITE_DESCRIPTION": "Articles by Ahmad Nadeem."
   },
   "routes": [
-    // The old address (inkwell.ahmadnadeem.dev) is not a route of this Worker: a Cloudflare Redirect Rule
-    // sends it here. See section 6 of WORKBOARD.md.
     { "pattern": "articles.ahmadnadeem.dev", "custom_domain": true }
   ]
 }

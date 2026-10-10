@@ -106,7 +106,7 @@ public class GitHubStoreTests
         request.RequestUri!.ToString().Should().Be("https://api.github.com/repos/owner/portfolio/contents/src/content/blog/hello.md?ref=main");
         request.Headers.Authorization!.Scheme.Should().Be("Bearer");
         request.Headers.Authorization.Parameter.Should().Be(Token);
-        request.Headers.UserAgent.ToString().Should().Contain("inkwell-admin");
+        request.Headers.UserAgent.ToString().Should().Contain("articles-admin");
         request.Headers.Accept.ToString().Should().Contain("application/vnd.github+json");
         request.Headers.GetValues("X-GitHub-Api-Version").Should().ContainSingle();
     }

@@ -42,3 +42,11 @@ describe('the link back to the author', () => {
     expect(read('./.env.production')).toMatch(/^VITE_PORTFOLIO_URL=https:\/\/ahmadnadeem\.dev$/m)
   })
 })
+
+describe('the old address is gone', () => {
+  it('is named nowhere in the public site settings, and no redirect Worker is left', () => {
+    expect(read('./wrangler.jsonc')).not.toContain('inkwell.ahmadnadeem.dev')
+    expect(read('./index.html')).not.toMatch(/inkwell/i)
+    expect(existsSync(new URL('./legacy-redirect', import.meta.url))).toBe(false)
+  })
+})

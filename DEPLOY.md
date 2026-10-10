@@ -109,18 +109,6 @@ creates `articles.ahmadnadeem.dev` and its DNS record (your domain is already on
 Open https://articles.ahmadnadeem.dev (the first load may be slow while Render wakes up), register,
 write a post, publish it, then open the post link in a private window.
 
-## The old address
-
-The site used to live at `inkwell.ahmadnadeem.dev`. That address still works for good: the Worker named
-`inkwell` (in `web/legacy-redirect`) sends every request to the same path on `articles.ahmadnadeem.dev`
-with a 301, so links shared or emailed earlier keep working. Do not delete that Worker, and do not
-add a DNS record named `inkwell`; the Worker's custom domain creates its own. To redeploy it:
-
-```bash
-cd web/legacy-redirect
-npx wrangler deploy
-```
-
 ## Updating later
 
 - **API:** `git push`. Render rebuilds automatically.
