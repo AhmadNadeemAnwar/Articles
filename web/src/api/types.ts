@@ -30,6 +30,8 @@ export interface Site {
   categories: Category[]
   /** False until the site can send email; the subscribe form is hidden until then. */
   subscribeEnabled: boolean
+  /** The author's note shown on every post, or null when there is none. */
+  note?: string | null
 }
 
 export interface PostSummary {

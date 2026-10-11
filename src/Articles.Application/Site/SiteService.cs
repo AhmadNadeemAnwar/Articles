@@ -13,8 +13,14 @@ public sealed record CategoryWithCountDto(Guid Id, string Name, string Slug, int
 
 /// <summary>What the public site needs before it draws anything: how it should look and how posts are shelved.</summary>
 /// <param name="SubscribeEnabled">Whether the site can send email yet; the subscribe form is hidden until it can.</param>
+/// <param name="Note">The author's note shown on every post, or null when there is none.</param>
 /// <param name="Colors">The owner's own three colours. Present only when the theme is "custom".</param>
-public sealed record SiteDto(string Theme, IReadOnlyList<CategoryWithCountDto> Categories, bool SubscribeEnabled = false, ThemeColorsDto? Colors = null);
+public sealed record SiteDto(string Theme, IReadOnlyList<CategoryWithCountDto> Categories, bool SubscribeEnabled = false, ThemeColorsDto? Colors = null, string? Note = null);
+
+/// <summary>The author's note shown on every post. <paramref name="Text"/> is empty when there is none.</summary>
+public sealed record GlobalNoteDto(string Text);
+
+public sealed record SaveGlobalNoteRequest(string? Text);
 
 /// <summary>The three colours a custom theme is made from. Every other colour on the site is worked out from these.</summary>
 /// <param name="Main">The header, as #rrggbb.</param>
@@ -44,6 +50,9 @@ public interface ISiteService
 
     Task<SiteSettingsDto> GetSettingsAsync(CancellationToken ct = default);
     Task<SiteSettingsDto> UpdateSettingsAsync(UpdateSiteSettingsRequest request, string admin, CancellationToken ct = default);
+
+    Task<GlobalNoteDto> GetNoteAsync(CancellationToken ct = default);
+    Task<GlobalNoteDto> SaveNoteAsync(SaveGlobalNoteRequest request, string admin, CancellationToken ct = default);
 
     Task<IReadOnlyList<CategoryWithCountDto>> GetCategoriesAsync(CancellationToken ct = default);
     Task<CategoryWithCountDto> CreateCategoryAsync(SaveCategoryRequest request, string admin, CancellationToken ct = default);
@@ -173,7 +182,35 @@ public sealed class SiteService : ISiteService
     public async Task<SiteDto> GetPublicAsync(CancellationToken ct = default)
     {
         var (theme, colors) = await CurrentLookAsync(ct);
-        return new SiteDto(theme, await GetCategoriesAsync(ct), Colors: theme == Themes.Custom ? colors : null);
+        var note = (await GetNoteAsync(ct)).Text;
+        return new SiteDto(theme, await GetCategoriesAsync(ct), Colors: theme == Themes.Custom ? colors : null, Note: note.Length == 0 ? null : note);
+    }
+
+    /// <summary>Long enough for a paragraph or two with a link; this is a note, not an article.</summary>
+    public const int MaxNoteLength = 1000;
+
+    public const string NoteSettingKey = "comments.note";
+
+    public async Task<GlobalNoteDto> GetNoteAsync(CancellationToken ct = default) =>
+        new((await _site.GetSettingAsync(NoteSettingKey, ct))?.Trim() ?? string.Empty);
+
+    /// <summary>Saves the note shown on every post. Empty text removes it. Plain text only: the site never treats it as markup.</summary>
+    public async Task<GlobalNoteDto> SaveNoteAsync(SaveGlobalNoteRequest request, string admin, CancellationToken ct = default)
+    {
+        // Line breaks are kept; runs of blank lines and stray control characters are not.
+        var text = new string((request.Text ?? string.Empty).Replace("\r\n", "\n").Replace('\r', '\n').Where(c => c == '\n' || !char.IsControl(c)).ToArray()).Trim();
+        while (text.Contains("\n\n\n")) text = text.Replace("\n\n\n", "\n\n");
+        if (text.Length > MaxNoteLength) throw new DomainException($"Keep the note under {MaxNoteLength} characters.");
+
+        var current = (await GetNoteAsync(ct)).Text;
+        if (text != current)
+        {
+            await _site.SetSettingAsync(NoteSettingKey, text, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+            await _activity.RecordAsync(admin, text.Length == 0 ? Activity.RemovedGlobalNote : Activity.SavedGlobalNote, text.Length == 0 ? "note removed" : "note changed", ct);
+        }
+
+        return new GlobalNoteDto(text);
     }
 
     public async Task<SiteSettingsDto> GetSettingsAsync(CancellationToken ct = default)

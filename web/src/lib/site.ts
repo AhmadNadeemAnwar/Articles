@@ -1,7 +1,7 @@
 export const SITE_NAME = 'Articles'
 
 /** The name as it appears in browser tabs and link previews: the English name, then the Urdu one. */
-export const SITE_TITLE = `${SITE_NAME} | کھت از احمد`
+export const SITE_TITLE = `${SITE_NAME} | لکھت از احمد`
 
 /**
  * The owner's main site. Empty until that site is reachable: the link, and the contact line on the

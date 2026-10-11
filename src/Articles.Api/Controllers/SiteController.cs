@@ -46,6 +46,14 @@ public class SiteAdminController : ControllerBase
     public async Task<ActionResult<SiteSettingsDto>> UpdateSettings(UpdateSiteSettingsRequest request, CancellationToken ct) =>
         Ok(await _site.UpdateSettingsAsync(request, Admin, ct));
 
+    /// <summary>The note shown at the end of every post.</summary>
+    [HttpGet("global-note")]
+    public async Task<ActionResult<GlobalNoteDto>> GlobalNote(CancellationToken ct) => Ok(await _site.GetNoteAsync(ct));
+
+    [HttpPut("global-note")]
+    public async Task<ActionResult<GlobalNoteDto>> SaveGlobalNote(SaveGlobalNoteRequest request, CancellationToken ct) =>
+        Ok(await _site.SaveNoteAsync(request, Admin, ct));
+
     [HttpGet("categories")]
     public async Task<ActionResult<IReadOnlyList<CategoryWithCountDto>>> Categories(CancellationToken ct) =>
         Ok(await _site.GetCategoriesAsync(ct));

@@ -207,4 +207,36 @@ public class SitePipelineTests : IClassFixture<AdminApiFactory>
         slug.Should().MatchRegex("^today-for-tomorrow-[23456789a-hjkmnp-z]{5}$");
         (await Send(HttpMethod.Get, $"/api/v1/posts/{slug}")).StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+
+    [Fact]
+    public async Task Only_an_admin_session_can_read_or_change_the_note()
+    {
+        (await Send(HttpMethod.Get, "/api/v1/admin/global-note")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await Send(HttpMethod.Put, "/api/v1/admin/global-note", body: new { text = "x" })).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await Send(HttpMethod.Put, "/api/v1/admin/global-note", await ReaderTokenAsync(), new { text = "x" })).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task The_owner_saves_a_note_and_every_visitor_gets_it_with_the_site()
+    {
+        var token = await AdminTokenAsync();
+
+        var saved = await Send(HttpMethod.Put, "/api/v1/admin/global-note", token, new { text = "Thanks for reading." });
+
+        saved.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await Json(await Send(HttpMethod.Get, "/api/v1/admin/global-note", token))).GetProperty("text").GetString().Should().Be("Thanks for reading.");
+        (await Json(await Send(HttpMethod.Get, "/api/v1/site"))).GetProperty("note").GetString().Should().Be("Thanks for reading.");
+
+        await Send(HttpMethod.Put, "/api/v1/admin/global-note", token, new { text = "" });
+        (await Json(await Send(HttpMethod.Get, "/api/v1/site"))).GetProperty("note").ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Fact]
+    public async Task A_note_that_is_too_long_is_a_plain_bad_request()
+    {
+        var response = await Send(HttpMethod.Put, "/api/v1/admin/global-note", await AdminTokenAsync(), new { text = new string('x', 1001) });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }

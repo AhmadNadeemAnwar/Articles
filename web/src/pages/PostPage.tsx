@@ -9,11 +9,14 @@ import { useAsync } from '../hooks/useAsync'
 import { useTitle } from '../hooks/useTitle'
 import { safeImageSrc } from '../lib/safeUrl'
 import { postPath, slugFromParams } from '../lib/site'
+import { useSite } from '../lib/siteContext'
+import { noteParts } from '../lib/note'
 
 export function PostPage() {
   const slug = slugFromParams(useParams())
   const location = useLocation()
   const navigate = useNavigate()
+  const { note } = useSite()
 
   const loaded = useAsync(() => api.post(slug), [slug])
   const post = loaded.data
@@ -82,6 +85,17 @@ export function PostPage() {
           <div className="pill-row" style={{ marginTop: '2.5rem' }}>
             {post.tags.map((tag) => <TagPill key={tag.id} tag={tag} />)}
           </div>
+        )}
+
+        {note && (
+          <aside className="author-note" aria-label={`Note from ${post.author.displayName}`}>
+            <p className="author-note__label">Note from {post.author.displayName}</p>
+            <p className="author-note__text">
+              {noteParts(note).map((part, index) => part.href
+                ? <a key={index} href={part.href} target="_blank" rel="noopener noreferrer nofollow">{part.text}</a>
+                : <span key={index}>{part.text}</span>)}
+            </p>
+          </aside>
         )}
 
         <div className="actionbar">

@@ -9,9 +9,11 @@ interface SiteState {
   categories: Category[]
   /** Whether readers can subscribe by email. False until the API says the site can send mail. */
   subscribeEnabled: boolean
+  /** The author's note shown at the end of every post, if there is one. */
+  note: string | null
 }
 
-const EMPTY: SiteState = { categories: [], subscribeEnabled: false }
+const EMPTY: SiteState = { categories: [], subscribeEnabled: false, note: null }
 const SiteContext = createContext<SiteState>(EMPTY)
 
 /**
@@ -31,6 +33,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
         setState({
           categories: site.categories.filter((category) => category.postCount > 0),
           subscribeEnabled: site.subscribeEnabled === true,
+          note: typeof site.note === 'string' && site.note.trim() !== '' ? site.note : null,
         })
       })
       .catch(() => {})

@@ -136,8 +136,8 @@ async function cachedDocument(request, ctx, contentType, build) {
 const GONE = Symbol('gone')
 
 // The version is bumped whenever what is stored changes, including the site's name (it is part of each
-// saved title). v4: the site became Articles. v5: the name gained its Urdu half, so older titles are not reused.
-const metaKey = (slug) => new Request(`https://post-meta.internal/v5/${encodeURIComponent(slug)}`)
+// saved title). v4: the site became Articles. v5: the name gained its Urdu half. v6: its spelling was corrected, so older titles are not reused.
+const metaKey = (slug) => new Request(`https://post-meta.internal/v6/${encodeURIComponent(slug)}`)
 
 /** Asks the API about a post and remembers the answer. Forgets it if the post is gone. */
 async function refreshPost(ctx, site, slug, timeoutMs) {

@@ -228,6 +228,11 @@ export interface PortfolioEntry {
   body: string
 }
 
+/** The note shown at the end of every post. Empty text means there is none. */
+export interface GlobalNote {
+  text: string
+}
+
 /** What "Amaze with AI" proposes for the custom theme. Nothing is saved until the owner keeps it. */
 export interface ThemeSuggestion {
   colors: { main: string; accent: string; background: string }

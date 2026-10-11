@@ -502,4 +502,67 @@ public class SiteServiceTests : IDisposable
     }
 
     public void Dispose() => _fixture.Dispose();
+
+
+    // ---- The note shown on every post ----------------------------------------------------------
+
+    [Fact]
+    public async Task A_site_with_no_note_sends_none_to_readers()
+    {
+        (await _site.GetPublicAsync()).Note.Should().BeNull();
+        (await _site.GetNoteAsync()).Text.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_saved_note_reaches_every_reader_and_is_recorded()
+    {
+        var saved = await _site.SaveNoteAsync(new SaveGlobalNoteRequest("  Thank you for reading.\r\n\r\n\r\n\r\nWrite to me at https://example.com/contact  "), Owner);
+
+        saved.Text.Should().Be("Thank you for reading.\n\nWrite to me at https://example.com/contact");
+        (await _site.GetPublicAsync()).Note.Should().Be(saved.Text);
+        (await HistoryAsync()).Should().ContainSingle().Which.Should().Be($"{Activity.SavedGlobalNote}: note changed");
+    }
+
+    [Fact]
+    public async Task Saving_empty_text_removes_the_note()
+    {
+        await _site.SaveNoteAsync(new SaveGlobalNoteRequest("A note"), Owner);
+
+        await _site.SaveNoteAsync(new SaveGlobalNoteRequest("   "), Owner);
+
+        (await _site.GetPublicAsync()).Note.Should().BeNull();
+        (await HistoryAsync()).Should().Contain($"{Activity.RemovedGlobalNote}: note removed");
+    }
+
+    [Fact]
+    public async Task Saving_the_same_note_again_changes_and_records_nothing()
+    {
+        await _site.SaveNoteAsync(new SaveGlobalNoteRequest("A note"), Owner);
+
+        await _site.SaveNoteAsync(new SaveGlobalNoteRequest("  A note "), Owner);
+        await _site.SaveNoteAsync(new SaveGlobalNoteRequest(null), Owner);
+        await _site.SaveNoteAsync(new SaveGlobalNoteRequest(""), Owner);
+
+        (await HistoryAsync()).Where(h => h.StartsWith(Activity.SavedGlobalNote)).Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task A_note_over_the_limit_is_refused_and_the_old_one_stays()
+    {
+        await _site.SaveNoteAsync(new SaveGlobalNoteRequest("Keep me"), Owner);
+
+        var failure = await Record.ExceptionAsync(() => _site.SaveNoteAsync(new SaveGlobalNoteRequest(new string('x', SiteService.MaxNoteLength + 1)), Owner));
+
+        failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("1000");
+        (await _site.GetNoteAsync()).Text.Should().Be("Keep me");
+        (await _site.SaveNoteAsync(new SaveGlobalNoteRequest(new string('x', SiteService.MaxNoteLength)), Owner)).Text.Should().HaveLength(SiteService.MaxNoteLength);
+    }
+
+    [Fact]
+    public async Task Markup_in_a_note_is_kept_as_plain_text_and_stray_control_characters_are_dropped()
+    {
+        var saved = await _site.SaveNoteAsync(new SaveGlobalNoteRequest("<b>Hi</b>\u0000\u0007 <script>x</script>"), Owner);
+
+        saved.Text.Should().Be("<b>Hi</b> <script>x</script>", "the site shows it as text, never as markup");
+    }
 }

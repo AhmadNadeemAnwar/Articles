@@ -367,6 +367,11 @@ input:focus, textarea:focus, select:focus {
 
 /* ---- Engagement bar ------------------------------------------------------- */
 
+/* The author's note, shown on every post. Plain text; line breaks are kept. */
+.author-note { margin: 2.5rem 0 0; padding: 1rem 1.15rem; border: 1px solid var(--border-strong); border-left: 4px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft); }
+.author-note__label { margin: 0 0 0.35rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); }
+.author-note__text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
+.author-note__text a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .actionbar { display: flex; align-items: center; gap: 0.5rem; padding: 1.25rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 2.5rem 0; }
 .actionbar__spacer { flex: 1; }
 
