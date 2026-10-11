@@ -25,8 +25,8 @@
   --border-strong: #bec8d4;
 
   --text: #1c1e21;
-  --text-muted: #4f5d6e;
-  --text-faint: #5b6a80;
+  --text-muted: #3a5578;
+  --text-faint: #46618f;
 
   /* Chrome surfaces */
   --chrome: #202327;
@@ -35,9 +35,9 @@
   --chrome-muted: #a8adb5;
   --chrome-border: #3a3e45;
 
-  --accent: #185fa5;
-  --accent-hover: #0c447c;
-  --accent-soft: #e6f1fb;
+  --accent: #0b5fd0;
+  --accent-hover: #0847a0;
+  --accent-soft: #dcebff;
   --accent-chrome: #6fa8e0;
   --danger: #a8331f;
 
@@ -62,8 +62,8 @@
     --border-strong: #3c4552;
 
     --text: #ececee;
-    --text-muted: #a3adba;
-    --text-faint: #8592a3;
+    --text-muted: #aec3e3;
+    --text-faint: #8fabd3;
 
     /* Chrome goes deeper than the page, so the frame still separates from the content */
     --chrome: #0b0c0e;
@@ -72,9 +72,9 @@
     --chrome-muted: #999ba1;
     --chrome-border: #25262a;
 
-    --accent: #6fa8e0;
-    --accent-hover: #8fbeeb;
-    --accent-soft: #17293c;
+    --accent: #5aa4ff;
+    --accent-hover: #86bcff;
+    --accent-soft: #14294a;
     --accent-chrome: #6fa8e0;
     --danger: #e58270;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
@@ -102,8 +102,8 @@
   --border-strong: #b9d3c6;
 
   --text: #1c1e21;
-  --text-muted: #4d6058;
-  --text-faint: #5a6e65;
+  --text-muted: #3a6354;
+  --text-faint: #477160;
 
   --chrome: #17694a;
   --chrome-raised: #1e7a56;
@@ -111,9 +111,9 @@
   --chrome-muted: #c9e8dc;
   --chrome-border: #2a8a65;
 
-  --accent: #1a7350;
-  --accent-hover: #115c3e;
-  --accent-soft: #e3f3ec;
+  --accent: #067650;
+  --accent-hover: #045a3d;
+  --accent-soft: #d3f4e5;
   --accent-chrome: #c2f2df;
   --danger: #a8331f;
 
@@ -175,7 +175,7 @@ input:focus, textarea:focus, select:focus {
 .header__inner {
   max-width: 68rem;
   margin: 0 auto;
-  padding: 0.75rem 1.25rem;
+  padding: 0.5rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -183,12 +183,12 @@ input:focus, textarea:focus, select:focus {
 
 .brand {
   font-family: var(--font-read);
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
-.header__search { flex: 1; max-width: 22rem; }
+.header__search { flex: 1; max-width: 17rem; }
 .header__search input {
   background: var(--chrome-raised);
   border-color: var(--chrome-border);
@@ -208,10 +208,12 @@ input:focus, textarea:focus, select:focus {
 /* The reader's own colours: a palette button in the header and a small panel under it. */
 .palette { position: relative; }
 .palette__button {
-  display: grid; place-items: center; width: 2.25rem; height: 2.25rem; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-width: 2.25rem; height: 2.25rem; padding: 0 0.6rem;
+  font-size: 0.85rem;
   border: 1px solid var(--chrome-border); border-radius: var(--radius); background: transparent; color: var(--chrome-text);
 }
 .palette__button:hover, .palette__button[aria-expanded='true'] { border-color: var(--accent-chrome); color: var(--accent-chrome); }
+@media (max-width: 640px) { .palette__label { display: none; } .palette__button { padding: 0; } }
 .palette__panel {
   position: absolute; right: 0; top: calc(100% + 0.6rem); z-index: 30; width: min(19rem, calc(100vw - 2rem));
   display: grid; gap: 0.75rem; padding: 1rem;
@@ -261,6 +263,7 @@ input:focus, textarea:focus, select:focus {
   border-radius: 999px;
   padding: 0.4rem 0.9rem;
   font-size: 0.9rem;
+  font-weight: 500;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
@@ -320,6 +323,7 @@ input:focus, textarea:focus, select:focus {
   border-radius: 999px;
   padding: 0.15rem 0.6rem;
   font-size: 0.75rem;
+  font-weight: 600;
   color: var(--accent);
 }
 
@@ -328,18 +332,19 @@ input:focus, textarea:focus, select:focus {
 
 /* ---- Reading view --------------------------------------------------------- */
 
-.article__title-row { display: flex; align-items: flex-start; gap: 0.75rem; }
-.article__title { font-family: var(--font-read); font-size: clamp(1.75rem, 1.1rem + 3vw, 2.4rem); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 0.5rem; flex: 1; }
-.article__title-row .link-copy { margin-top: 0.4rem; }
+.article__title { font-family: var(--font-read); font-size: clamp(1.75rem, 1.1rem + 3vw, 2.4rem); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
 
 /* The address shown beside the copy-link button: Articles/<category>/<post>. Long ones are cut short, never wrapped. */
 .link-copy { display: inline-flex; align-items: center; gap: 0.6rem; min-width: 0; }
 .link-address { color: var(--text-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .link-copy--compact .link-address { max-width: 16rem; }
-@media (max-width: 640px) { .link-copy--compact .link-address { display: none; } .actionbar .link-address { max-width: 9rem; } }
+/* Under the title, the address has the whole line: written out in full, wrapping rather than cut short. */
+.article__link { margin: 0 0 1rem; }
+.article__link .link-address { max-width: none; white-space: normal; overflow: visible; }
+@media (max-width: 640px) { .link-copy--compact:not(.article__link *) .link-address { display: none; } .actionbar .link-address { max-width: 9rem; } }
 .article__subtitle { font-family: var(--font-read); font-size: 1.25rem; color: var(--text-muted); margin: 0 0 1.5rem; font-weight: 400; }
-.article__byline { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
-.article__cover { width: 100%; border-radius: var(--radius); margin-bottom: 2rem; }
+.article__byline { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1.25rem; }
+.article__cover { width: 100%; border-radius: var(--radius); margin-bottom: 1.5rem; }
 
 /* Sized with the screen: comfortable on a phone, larger where the wider column would otherwise make lines too long. */
 .prose { font-family: var(--font-read); font-size: clamp(1.1rem, 0.95rem + 0.6vw, 1.28rem); line-height: 1.75; }

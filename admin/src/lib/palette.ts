@@ -21,7 +21,7 @@ export const MIN_TEXT_CONTRAST = 7
 /** Everything else that is read: links, buttons, small print (WCAG AA). */
 export const MIN_CONTRAST = 4.5
 /** How far greys (borders, small print, quiet bands) lean toward the main colour, so they belong to the theme. */
-export const TINT = 0.1
+export const TINT = 0.2
 
 // The API measures a background against this same pair before it will store it.
 const DARK_TEXT = '#1c1e21'

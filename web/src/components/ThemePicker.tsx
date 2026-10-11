@@ -64,6 +64,7 @@ export function ThemePicker() {
           <circle cx="10.5" cy="7.5" r="1" fill="currentColor" stroke="none" />
           <circle cx="15" cy="7.5" r="1" fill="currentColor" stroke="none" />
         </svg>
+        <span className="palette__label">Colours</span>
       </button>
 
       {open && (

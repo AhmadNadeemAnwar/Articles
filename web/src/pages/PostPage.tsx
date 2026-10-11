@@ -59,9 +59,9 @@ export function PostPage() {
         {post.category && (
           <Link className="article__category" to={`/?category=${encodeURIComponent(post.category.slug)}`}>{post.category.name}</Link>
         )}
-        <div className="article__title-row">
-          <h1 className="article__title">{post.title}</h1>
-          <CopyLinkButton url={link} shown={shown} compact />
+        <h1 className="article__title">{post.title}</h1>
+        <div className="article__link">
+          <CopyLinkButton url={link} shown={shown} />
         </div>
         {post.subtitle && <p className="article__subtitle">{post.subtitle}</p>}
 
@@ -88,7 +88,7 @@ export function PostPage() {
         <div className="actionbar">
           <Reactions postId={post.id} clapCount={post.clapCount} insightfulCount={post.insightfulCount} />
           <span className="actionbar__spacer" />
-          <CopyLinkButton url={link} shown={shown} />
+          <CopyLinkButton url={link} />
         </div>
       </article>
 

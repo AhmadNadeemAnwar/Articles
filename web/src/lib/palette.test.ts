@@ -159,7 +159,7 @@ describe('greys that belong to the theme', () => {
   })
 
   it('keeps the tint gentle, so text colours stay recognisably grey', () => {
-    expect(TINT).toBeLessThanOrEqual(0.12)
+    expect(TINT).toBeLessThanOrEqual(0.22)
     const { '--text-muted': muted } = paletteFrom({ main: '#ff0000', accent: '#ff0000', background: '#ffffff' })
     const [r, g, b] = [1, 3, 5].map((at) => parseInt(muted.slice(at, at + 2), 16))
 
