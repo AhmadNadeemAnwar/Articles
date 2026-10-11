@@ -7,6 +7,7 @@ import { useAsync } from '../hooks/useAsync'
 import { useConfirm, useToast } from '../components/feedback'
 import { Empty, ErrorNote, PageHeader, Pagination, Spinner, formatDate, formatNumber, publicPostUrl, statusLabels } from '../components/ui'
 import { describeNotifyResult } from './SubscribersPage'
+import { NO_CATEGORY, categoryChoice, categoryParam, isFiltering, movedMessage } from '../posts/categoryMove'
 
 const STATUSES: PostStatus[] = ['Draft', 'Published', 'Inactive']
 
@@ -28,6 +29,7 @@ export function PostsPage() {
   const myHandle = sessionHandle(useAuth().session)
 
   const [status, setStatus] = useState('')
+  const [category, setCategory] = useState('')
   const [search, setSearch] = useState('')
   const [term, setTerm] = useState('')
   const [page, setPage] = useState(1)
@@ -53,7 +55,10 @@ export function PostsPage() {
     return () => clearTimeout(timer)
   }, [search])
 
-  const posts = useAsync(() => api.posts({ status, q: term, pageNumber: page, pageSize: 20 }), [status, term, page])
+  const posts = useAsync(() => api.posts({ status, q: term, category: categoryParam(category), pageNumber: page, pageSize: 20 }), [status, term, category, page])
+  // The list of categories feeds the filter and each row's dropdown; if it cannot be loaded the rows just show the current one.
+  const categories = useAsync(() => api.categories().catch(() => []), [])
+  const shelves = categories.data ?? []
   // The Notify button only appears once email is set up; if this cannot be loaded it simply stays hidden.
   const mail = useAsync(() => api.subscribersSummary().catch(() => null), [])
 
@@ -107,6 +112,13 @@ export function PostsPage() {
     await act(post, () => api.adminSetPostStatus(post.id, target), target === 'Published' ? 'Post published.' : `Post is now ${statusLabels[target].toLowerCase()}.`)
   }
 
+  async function changeCategory(post: AdminPost, value: string) {
+    const target = categoryChoice(value)
+    if (target === post.categoryId) return
+    const name = target === null ? null : shelves.find((c) => c.id === target)?.name ?? 'that category'
+    await act(post, () => api.adminSetPostCategory(post.id, target), movedMessage(post.title, name))
+  }
+
   async function remove(post: AdminPost) {
     const ok = await confirm({
       title: 'Delete this post for good?',
@@ -149,14 +161,19 @@ export function PostsPage() {
           <option value="Draft">Drafts</option>
           <option value="Inactive">Not active</option>
         </select>
+        <select aria-label="Filter by category" value={category} onChange={(e) => { setCategory(e.target.value); setPage(1) }}>
+          <option value="">All categories</option>
+          <option value={NO_CATEGORY}>No category</option>
+          {shelves.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
       </div>
 
       {posts.error && <ErrorNote message={posts.error} onRetry={posts.reload} />}
       {posts.loading && !posts.data && <Spinner />}
 
       {posts.data && (posts.data.items.length === 0 ? (
-        <Empty title={term || status ? 'No posts match' : 'No posts yet'}>
-          {term || status ? 'Try a different search or status.' : <Link className="btn btn--primary" to="/posts/new">Write your first post</Link>}
+        <Empty title={isFiltering({ status, term, category }) ? 'No posts match' : 'No posts yet'}>
+          {isFiltering({ status, term, category }) ? 'Try a different search, status or category.' : <Link className="btn btn--primary" to="/posts/new">Write your first post</Link>}
         </Empty>
       ) : (
         <>
@@ -164,7 +181,7 @@ export function PostsPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Title</th><th>Author</th><th>Status</th><th>Published</th>
+                  <th>Title</th><th>Author</th><th>Status</th><th>Category</th><th>Published</th>
                   <th className="num">Views</th><th className="num">Claps</th><th className="num">Insightful</th><th></th>
                 </tr>
               </thead>
@@ -175,15 +192,21 @@ export function PostsPage() {
                     <tr key={post.id} className={busyId === post.id ? 'is-busy' : undefined}>
                       <td>
                         <div className="cell-title">{url && post.status === 'Published' ? <a href={url} target="_blank" rel="noopener noreferrer">{post.title}</a> : post.title}</div>
-                        {(post.category || post.tags.length > 0) && (
-                          <div className="cell-sub">{[post.category, ...post.tags].filter(Boolean).join(' · ')}</div>
-                        )}
+                        {post.tags.length > 0 && <div className="cell-sub">{post.tags.join(' · ')}</div>}
                       </td>
                       <td>@{post.authorHandle}</td>
                       <td>
                         <select className={`status-select status-select--${post.status.toLowerCase()}`} aria-label={`Status of ${post.title}`}
                           value={post.status} disabled={busyId === post.id} onChange={(e) => changeStatus(post, e.target.value as PostStatus)}>
                           {STATUSES.map((value) => <option key={value} value={value}>{statusLabels[value]}</option>)}
+                        </select>
+                      </td>
+                      <td>
+                        <select className="category-select" aria-label={`Category of ${post.title}`} value={post.categoryId ?? ''}
+                          disabled={busyId === post.id || categories.loading} onChange={(e) => changeCategory(post, e.target.value)}>
+                          <option value="">No category</option>
+                          {shelves.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                          {post.categoryId && !shelves.some((c) => c.id === post.categoryId) && <option value={post.categoryId}>{post.category ?? '(current category)'}</option>}
                         </select>
                       </td>
                       <td>

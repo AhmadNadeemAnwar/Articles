@@ -46,10 +46,10 @@ public class AdminController : ControllerBase
 
     [HttpGet("posts")]
     public async Task<ActionResult<PagedResponse<AdminPostDto>>> Posts(
-        [FromQuery] string? status, [FromQuery] string? q,
+        [FromQuery] string? status, [FromQuery] string? q, [FromQuery] string? category,
         [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
     {
-        var page = await _admin.GetPostsAsync(status, q, Math.Max(1, pageNumber), Math.Clamp(pageSize, 1, 100), ct);
+        var page = await _admin.GetPostsAsync(status, q, Math.Max(1, pageNumber), Math.Clamp(pageSize, 1, 100), ct, category);
         return Ok(PagedResponse<AdminPostDto>.From(page));
     }
 
@@ -58,6 +58,14 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> SetPostStatus(Guid id, SetPostStatusRequest request, CancellationToken ct)
     {
         await _admin.SetPostStatusAsync(id, request.Status, Admin, ct);
+        return NoContent();
+    }
+
+    /// <summary>Moves any post to a category, or out of its category (a null id). Does not touch its status or text.</summary>
+    [HttpPost("posts/{id:guid}/category")]
+    public async Task<IActionResult> SetPostCategory(Guid id, SetPostCategoryRequest request, CancellationToken ct)
+    {
+        await _admin.SetPostCategoryAsync(id, request.CategoryId, Admin, ct);
         return NoContent();
     }
 

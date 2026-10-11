@@ -149,10 +149,13 @@ export const api = {
   profile: () => request<Profile>('GET', '/api/v1/auth/me'),
   updateProfile: (body: ProfileInput) => request<Profile>('PUT', '/api/v1/users/me', body),
 
-  posts: (params: { status?: string; q?: string; pageNumber?: number; pageSize?: number }) =>
+  /** `category` is nothing for all posts, "none" for posts in no category, or a category id. */
+  posts: (params: { status?: string; q?: string; category?: string; pageNumber?: number; pageSize?: number }) =>
     request<Paged<AdminPost>>('GET', `/api/v1/admin/posts${query(params)}`),
   /** Any post, whoever wrote it. */
   adminSetPostStatus: (id: string, status: PostStatus) => request<void>('POST', `/api/v1/admin/posts/${id}/status`, { status }),
+  /** Moves any post to a category, or out of its category when `categoryId` is null. Changes nothing else. */
+  adminSetPostCategory: (id: string, categoryId: string | null) => request<void>('POST', `/api/v1/admin/posts/${id}/category`, { categoryId }),
   deletePost: (id: string) => request<void>('DELETE', `/api/v1/admin/posts/${id}`),
 
   // Writing uses the same routes as the public site: these act on your own posts only.

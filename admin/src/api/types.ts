@@ -63,6 +63,8 @@ export interface AdminPost {
   category: string | null
   /** When subscribers were last emailed about this post, or null if never. */
   notifiedAt: string | null
+  /** The category's id, or null for a post in no category. */
+  categoryId: string | null
 }
 
 export interface Subscriber {

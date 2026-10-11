@@ -60,6 +60,9 @@ public sealed record PostDetailDto(
 /// <summary>Draft, Published or Inactive.</summary>
 public sealed record SetPostStatusRequest(string Status);
 
+/// <summary>Moves a post to a category, or takes it out of its category when <see cref="CategoryId"/> is null.</summary>
+public sealed record SetPostCategoryRequest(Guid? CategoryId);
+
 public sealed record CreatePostRequest(
     string Title,
     string? Subtitle,

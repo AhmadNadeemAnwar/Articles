@@ -63,7 +63,8 @@ public sealed record AdminPostDto(
     int Comments,
     IReadOnlyList<string> Tags,
     string? Category,
-    DateTimeOffset? NotifiedAt);
+    DateTimeOffset? NotifiedAt,
+    Guid? CategoryId);
 
 public sealed record AdminCommentDto(
     Guid Id,

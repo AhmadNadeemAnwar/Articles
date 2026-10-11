@@ -416,6 +416,9 @@ public class AdminPortfolioHttpTests : IClassFixture<AdminApiFactory>
     [Fact]
     public async Task Portfolio_routes_need_an_admin_session()
     {
+        // The accounts are created on demand; this test signs in with one, so it must not rely on another test having run first.
+        await _factory.EnsureUsersAsync();
+
         foreach (var path in new[] { "/api/v1/admin/portfolio/status", "/api/v1/admin/portfolio/blog", "/api/v1/admin/portfolio/blog/x" })
             (await Send(HttpMethod.Get, path, null)).StatusCode.Should().Be(HttpStatusCode.Unauthorized, path);
 

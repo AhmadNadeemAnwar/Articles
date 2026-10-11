@@ -14,9 +14,12 @@ public interface IAdminService
 {
     Task<AdminStatsDto> GetStatsAsync(CancellationToken ct = default);
 
-    Task<PagedResult<AdminPostDto>> GetPostsAsync(string? status, string? search, int pageNumber, int pageSize, CancellationToken ct = default);
+    /// <param name="category">Null or empty for all, "none" for posts in no category, or a category id.</param>
+    Task<PagedResult<AdminPostDto>> GetPostsAsync(string? status, string? search, int pageNumber, int pageSize, CancellationToken ct = default, string? category = null);
     Task UnpublishPostAsync(Guid postId, string admin, CancellationToken ct = default);
     Task SetPostStatusAsync(Guid postId, string status, string admin, CancellationToken ct = default);
+    /// <summary>Moves a post to a category, or out of its category when <paramref name="categoryId"/> is null.</summary>
+    Task SetPostCategoryAsync(Guid postId, Guid? categoryId, string admin, CancellationToken ct = default);
     Task<ExportDto> ExportAsync(string admin, CancellationToken ct = default);
     Task DeletePostAsync(Guid postId, string admin, CancellationToken ct = default);
 
@@ -40,6 +43,7 @@ public sealed class AdminService : IAdminService
     private readonly TimeProvider _time;
     private readonly ILogger<AdminService> _logger;
     private readonly IActivityLog _activity;
+    private readonly ISiteRepository? _site;
 
     public AdminService(
         IAdminRepository admin,
@@ -48,9 +52,11 @@ public sealed class AdminService : IAdminService
         IUnitOfWork unitOfWork,
         ILogger<AdminService> logger,
         TimeProvider? time = null,
-        IActivityLog? activity = null)
+        IActivityLog? activity = null,
+        ISiteRepository? site = null)
     {
         _activity = activity ?? NoActivityLog.Instance;
+        _site = site;
         _admin = admin;
         _posts = posts;
         _comments = comments;
@@ -84,17 +90,27 @@ public sealed class AdminService : IAdminService
             series);
     }
 
-    public async Task<PagedResult<AdminPostDto>> GetPostsAsync(string? status, string? search, int pageNumber, int pageSize, CancellationToken ct = default)
+    public async Task<PagedResult<AdminPostDto>> GetPostsAsync(string? status, string? search, int pageNumber, int pageSize, CancellationToken ct = default, string? category = null)
     {
         PostStatus? parsed = string.IsNullOrWhiteSpace(status) ? null : PostStatusChange.Parse(status);
 
-        var page = await _admin.SearchPostsAsync(parsed, search, pageNumber, pageSize, ct);
+        Guid? categoryId = null;
+        var uncategorised = false;
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            if (category.Trim().Equals("none", StringComparison.OrdinalIgnoreCase)) uncategorised = true;
+            else if (Guid.TryParse(category, out var parsedCategory)) categoryId = parsedCategory;
+            else throw new DomainException("Choose a category from the list, or No category.");
+        }
+
+        var page = await _admin.SearchPostsAsync(parsed, search, pageNumber, pageSize, categoryId, uncategorised, ct);
         return page.Map(p => new AdminPostDto(
             p.Id, p.Title, p.Slug, p.Status.ToString(), p.Author.Handle, p.Author.DisplayName,
             p.PublishedAt, p.UpdatedAt, p.ViewCount, p.ClapCount, p.InsightfulCount, p.CommentCount,
             p.PostTags.Select(pt => pt.Tag.Name).OrderBy(n => n).ToList(),
             p.Category?.Name,
-            p.NotifiedAt));
+            p.NotifiedAt,
+            p.CategoryId));
     }
 
     public Task UnpublishPostAsync(Guid postId, string admin, CancellationToken ct = default) =>
@@ -111,6 +127,28 @@ public sealed class AdminService : IAdminService
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Admin {Admin} changed post {PostId} ({Title}) from {From} to {To}", admin, post.Id, post.Title, from, target);
         await _activity.RecordAsync(admin, Activity.ChangedPostStatus, $"{post.Title}: {Label(from)} to {Label(target)}", ct);
+    }
+
+    public async Task SetPostCategoryAsync(Guid postId, Guid? categoryId, string admin, CancellationToken ct = default)
+    {
+        var post = await _posts.GetByIdAsync(postId, ct) ?? throw new NotFoundException(nameof(Post), postId);
+
+        // Nothing to do, and nothing worth a line in the history.
+        if (post.CategoryId == categoryId) return;
+
+        string? to = null;
+        if (categoryId is { } id)
+        {
+            var category = _site is null ? null : await _site.GetCategoryAsync(id, ct);
+            to = category?.Name ?? throw new DomainException("That category no longer exists. Choose another, or none.");
+        }
+
+        var from = post.Category?.Name;
+        post.SetCategory(categoryId);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("Admin {Admin} moved post {PostId} ({Title}) from {From} to {To}", admin, post.Id, post.Title, from ?? "no category", to ?? "no category");
+        await _activity.RecordAsync(admin, Activity.MovedPostCategory, $"{post.Title}: {from ?? "no category"} to {to ?? "no category"}", ct);
     }
 
     private static string Label(PostStatus status) => status == PostStatus.Inactive ? "Not active" : status.ToString();

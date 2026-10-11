@@ -29,6 +29,7 @@ public static class Activity
     public const string SignedIn = "Signed in";
     public const string FailedSignIn = "Failed sign-in attempt";
     public const string ChangedPostStatus = "Changed post status";
+    public const string MovedPostCategory = "Moved post to a category";
     public const string DeletedPost = "Deleted post";
     public const string RemovedComment = "Removed comment";
     public const string RenamedTopic = "Renamed topic";

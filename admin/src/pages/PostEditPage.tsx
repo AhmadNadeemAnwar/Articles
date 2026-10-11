@@ -371,7 +371,7 @@ export function PostEditPage() {
             {categoryId && !categories.some((c) => c.id === categoryId) && <option value={categoryId}>(current category)</option>}
           </select>
           <p className="field__hint">
-            One broad shelf for the post. {categories.length === 0 ? <>None exist yet: add them under <Link to="/site">Site</Link>.</> : <>Manage the list under <Link to="/site">Site</Link>.</>}
+            One broad shelf for the post. You can also move a post from the <Link to="/posts">Posts</Link> list. {categories.length === 0 ? <>None exist yet: add them under <Link to="/site">Site</Link>.</> : <>Manage the list under <Link to="/site">Site</Link>.</>}
           </p>
         </div>
         <div className="field">

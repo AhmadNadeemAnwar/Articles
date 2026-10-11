@@ -55,7 +55,7 @@ public class AdminRepository : IAdminRepository
             recent.Where(d => d.HasValue).Select(d => d!.Value).ToList());
     }
 
-    public async Task<PagedResult<Post>> SearchPostsAsync(PostStatus? status, string? search, int pageNumber, int pageSize, CancellationToken ct = default)
+    public async Task<PagedResult<Post>> SearchPostsAsync(PostStatus? status, string? search, int pageNumber, int pageSize, Guid? categoryId = null, bool uncategorised = false, CancellationToken ct = default)
     {
         var query = _db.Posts.AsNoTracking()
             .Include(p => p.Author)
@@ -64,6 +64,9 @@ public class AdminRepository : IAdminRepository
             .AsQueryable();
 
         if (status.HasValue) query = query.Where(p => p.Status == status.Value);
+
+        if (categoryId.HasValue) query = query.Where(p => p.CategoryId == categoryId.Value);
+        else if (uncategorised) query = query.Where(p => p.CategoryId == null);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
