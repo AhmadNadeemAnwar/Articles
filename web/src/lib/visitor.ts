@@ -4,7 +4,7 @@
  * keeps a refresh from counting as another view. It is not tied to a person: clearing site data
  * simply produces a new one. The API stores only a hash of it.
  */
-const KEY = 'inkwell.visitor'
+const KEY = 'articles.visitor'
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // Used when storage is unavailable (private mode, blocked site data): the id then lasts for this page only.

@@ -43,7 +43,7 @@ You need an authenticator app on your phone (Google Authenticator, Microsoft Aut
 1Password, any of them). From the `inkwell` folder, using your **Articles login email**:
 
 ```powershell
-dotnet run --project tools/Inkwell.AdminSetup -- you@example.com
+dotnet run --project tools/Articles.AdminSetup -- you@example.com
 ```
 
 It shows a QR code, you scan it, type the code your app displays to prove it works, and it prints two
@@ -347,4 +347,4 @@ Admin actions are recorded in the API's logs (Render → Logs) with your email a
   (`maya@example.com`) and authenticator secret. They exist only in `appsettings.Development.json` and
   are never used by the deployed site.
 - If you change `src/content.config.ts` in the portfolio, update the matching rules in
-  `src/Inkwell.Application/Portfolio/PortfolioContent.cs` and `admin/src/portfolio/schema.ts`.
+  `src/Articles.Application/Portfolio/PortfolioContent.cs` and `admin/src/portfolio/schema.ts`.

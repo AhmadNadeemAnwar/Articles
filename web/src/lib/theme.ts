@@ -20,8 +20,8 @@ export const DEFAULT_THEME: Theme = 'blue'
 export type Look = { theme: Theme } | { theme: 'custom'; colors: ThemeColors }
 
 const DEFAULT_LOOK: Look = { theme: DEFAULT_THEME }
-const SITE_KEY = 'inkwell.theme'
-const READER_KEY = 'inkwell.reader-colors'
+const SITE_KEY = 'articles.theme'
+const READER_KEY = 'articles.reader-colors'
 
 /** Roughly what each ready-made theme looks like, so the reader's pickers start from what is on screen. */
 const NEAREST: Record<Theme, ThemeColors> = {

@@ -8,7 +8,7 @@ import type {
 // Empty in development (Vite proxies /api); the production build bakes in the API's absolute URL.
 const API_BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/+$/, '')
 
-const SESSION_KEY = 'inkwell.admin.session'
+const SESSION_KEY = 'articles.admin.session'
 
 /** Where the browser fetches an uploaded picture from. */
 export const imageUrl = (id: string) => `${API_BASE}/api/v1/images/${id}`

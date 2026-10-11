@@ -34,7 +34,7 @@ const STATUSES: PostStatus[] = ['Draft', 'Published', 'Inactive']
  * Unsaved work is mirrored to this browser, because an admin session ends after two hours and a
  * save that arrives too late would otherwise take the writing with it.
  */
-const backupKey = (id: string | null) => `inkwell.admin.unsaved:${id ?? 'new'}`
+const backupKey = (id: string | null) => `articles.admin.unsaved:${id ?? 'new'}`
 
 function readBackup(id: string | null): { draft: Draft; at: string } | null {
   try {

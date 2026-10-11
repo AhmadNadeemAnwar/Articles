@@ -1,6 +1,0 @@
-@Inkwell.Api_HostAddress = http://localhost:5231
-
-GET {{Inkwell.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

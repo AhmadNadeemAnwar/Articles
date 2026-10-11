@@ -2,7 +2,10 @@ import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { collections } from './src/portfolio/schema.ts'
 
-/** The portal is called Articles Admin; none of what its one user reads may still say Inkwell. */
+/** The portal is called Articles Admin; none of what its one user reads may still say Articles. */
+// The old name, in two halves so that no search-and-replace of the name ever turns these guards into their opposite.
+const OLD = ['ink', 'well'].join('')
+const OLD_RE = new RegExp(OLD, 'i')
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
 
 describe('the admin portal is branded Articles', () => {
@@ -16,16 +19,16 @@ describe('the admin portal is branded Articles', () => {
     expect(read('./.env.production')).toContain('VITE_PUBLIC_SITE=https://articles.ahmadnadeem.dev')
   })
 
-  it('has no message that still names Inkwell', () => {
+  it('has no message that still names Articles', () => {
     for (const file of ['./src/pages/PostEditPage.tsx', './src/pages/PostsPage.tsx', './src/pages/SitePage.tsx', './src/pages/LoginPage.tsx']) {
-      expect(read(file), file).not.toMatch(/Inkwell/)
+      expect(read(file), file).not.toMatch(OLD_RE)
     }
   })
 
   it('names the exported posts file after the new site', () => {
     const posts = read('./src/pages/PostsPage.tsx')
     expect(posts).toContain('articles-posts-')
-    expect(posts).not.toContain('inkwell-posts-')
+    expect(posts).not.toContain(`${OLD}-posts-`)
   })
 
   it('carries no old logo files', () => {

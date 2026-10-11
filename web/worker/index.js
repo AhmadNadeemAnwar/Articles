@@ -135,7 +135,7 @@ async function cachedDocument(request, ctx, contentType, build) {
 const GONE = Symbol('gone')
 
 // The version is bumped whenever what is stored changes, including the site's name (it is part of each
-// saved title). v4: the site became Articles, so entries saved while it was still Inkwell are not reused.
+// saved title). v4: the site became Articles, so entries saved while it was still Articles are not reused.
 const metaKey = (slug) => new Request(`https://post-meta.internal/v4/${encodeURIComponent(slug)}`)
 
 /** Asks the API about a post and remembers the answer. Forgets it if the post is gone. */

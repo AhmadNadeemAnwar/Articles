@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Articles.Api/Articles.Api.csproj" />
+    <Project Path="src/Articles.Application/Articles.Application.csproj" />
+    <Project Path="src/Articles.Domain/Articles.Domain.csproj" />
+    <Project Path="src/Articles.Infrastructure/Articles.Infrastructure.csproj" />
+    <Project Path="src/Articles.Migrations.Postgres/Articles.Migrations.Postgres.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Articles.Tests/Articles.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Articles.AdminSetup/Articles.AdminSetup.csproj" />
+  </Folder>
+</Solution>

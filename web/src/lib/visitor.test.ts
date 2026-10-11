@@ -41,16 +41,16 @@ describe('visitor id', () => {
 
     const id = getVisitorId(storage)
 
-    expect(storage.data.get('inkwell.visitor')).toBe(id)
+    expect(storage.data.get('articles.visitor')).toBe(id)
   })
 
   it.each(['', 'not-an-id', '<script>alert(1)</script>', '123'])('replaces a stored value that is not an id: %s', (bad) => {
-    const storage = fakeStorage({ 'inkwell.visitor': bad })
+    const storage = fakeStorage({ 'articles.visitor': bad })
 
     const id = getVisitorId(storage)
 
     expect(id).toMatch(ID)
-    expect(storage.data.get('inkwell.visitor')).toBe(id)
+    expect(storage.data.get('articles.visitor')).toBe(id)
   })
 
   it('still works when storage is blocked, and stays the same for the life of the page', () => {

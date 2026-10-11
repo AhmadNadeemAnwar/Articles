@@ -4,7 +4,7 @@ import {
   slugFromPath, summarise, timeoutFor,
 } from './meta.js'
 
-const SITE = { siteName: 'Inkwell', siteOrigin: 'https://inkwell.example', apiBase: 'https://api.example', description: 'Articles on Inkwell.' }
+const SITE = { siteName: 'Articles', siteOrigin: 'https://articles.example', apiBase: 'https://api.example', description: 'Articles on Articles.' }
 const IMAGE = '/api/v1/images/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11'
 
 const paragraph = (words) => ({ type: 'paragraph', content: [{ type: 'text', text: words }] })
@@ -120,7 +120,7 @@ describe('summarise', () => {
 
 describe('absoluteImage', () => {
   it("points an uploaded picture at the site's own cached address, not at the API", () => {
-    expect(absoluteImage(IMAGE, SITE.siteOrigin)).toBe('https://inkwell.example/media/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11')
+    expect(absoluteImage(IMAGE, SITE.siteOrigin)).toBe('https://articles.example/media/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11')
   })
 
   it('keeps an https link as it is', () => {
@@ -203,7 +203,7 @@ describe('describePost', () => {
 
     const meta = describePost(post({ contentJson }), SITE)
 
-    expect(meta.image).toBe('https://inkwell.example/media/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11')
+    expect(meta.image).toBe('https://articles.example/media/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11')
     expect(meta.description).toBe('We keep asking.')
   })
 
@@ -219,22 +219,22 @@ describe('describePost', () => {
 
   it('falls back to the opening words of the post, then to a general line', () => {
     expect(describePost(post(), SITE).description).toBe('First paragraph. Second paragraph.')
-    expect(describePost(post({ contentJson: '{}' }), SITE).description).toBe('An article on Inkwell.')
+    expect(describePost(post({ contentJson: '{}' }), SITE).description).toBe('An article on Articles.')
   })
 
   it('gives the /read/ address as the one true address of a post', () => {
-    expect(describePost(post(), SITE).url).toBe('https://inkwell.example/read/a-post')
-    expect(headTags(describePost(post(), SITE), 'Inkwell')).toContain('<link rel="canonical" href="https://inkwell.example/read/a-post">')
+    expect(describePost(post(), SITE).url).toBe('https://articles.example/read/a-post')
+    expect(headTags(describePost(post(), SITE), 'Articles')).toContain('<link rel="canonical" href="https://articles.example/read/a-post">')
   })
 
   it('builds the address, title and picture', () => {
     const meta = describePost(post({ coverImageUrl: IMAGE }), SITE)
 
     expect(meta).toMatchObject({
-      title: 'A post · Inkwell',
+      title: 'A post · Articles',
       heading: 'A post',
-      url: 'https://inkwell.example/read/a-post',
-      image: 'https://inkwell.example/media/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11',
+      url: 'https://articles.example/read/a-post',
+      image: 'https://articles.example/media/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11',
       author: 'Ahmad Nadeem',
     })
   })
@@ -242,24 +242,24 @@ describe('describePost', () => {
 
 describe('headTags', () => {
   it('includes what LinkedIn, WhatsApp and X look for', () => {
-    const tags = headTags(describePost(post({ coverImageUrl: IMAGE }), SITE), 'Inkwell')
+    const tags = headTags(describePost(post({ coverImageUrl: IMAGE }), SITE), 'Articles')
 
-    expect(tags).toContain('<link rel="canonical" href="https://inkwell.example/read/a-post">')
+    expect(tags).toContain('<link rel="canonical" href="https://articles.example/read/a-post">')
     expect(tags).toContain('<meta property="og:title" content="A post">')
     expect(tags).toContain('<meta property="og:type" content="article">')
-    expect(tags).toContain('<meta property="og:image" content="https://inkwell.example/media/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11">')
+    expect(tags).toContain('<meta property="og:image" content="https://articles.example/media/0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11">')
     expect(tags).toContain('<meta name="twitter:card" content="summary_large_image">')
     expect(tags).toContain('<meta name="description" content="First paragraph. Second paragraph.">')
   })
 
-  it('shares a post with no picture of its own using the Inkwell logo card', () => {
+  it('shares a post with no picture of its own using the Articles logo card', () => {
     const meta = describePost(post(), SITE)
-    const tags = headTags(meta, 'Inkwell')
+    const tags = headTags(meta, 'Articles')
 
-    expect(meta.image).toBe('https://inkwell.example/articles-share.png')
+    expect(meta.image).toBe('https://articles.example/articles-share.png')
     expect(DEFAULT_SHARE_IMAGE).toBe('/articles-share.png')
     expect(tags).toContain('<meta name="twitter:card" content="summary_large_image">')
-    expect(tags).toContain('<meta property="og:image" content="https://inkwell.example/articles-share.png">')
+    expect(tags).toContain('<meta property="og:image" content="https://articles.example/articles-share.png">')
   })
 
   it('prefers the posts own picture over the logo card', () => {
@@ -267,7 +267,7 @@ describe('headTags', () => {
   })
 
   it('uses the small card and leaves picture tags out when the meta has no picture at all', () => {
-    const tags = headTags({ ...describePost(post(), SITE), image: null }, 'Inkwell')
+    const tags = headTags({ ...describePost(post(), SITE), image: null }, 'Articles')
 
     expect(tags).toContain('<meta name="twitter:card" content="summary">')
     expect(tags).not.toContain('og:image')
@@ -275,7 +275,7 @@ describe('headTags', () => {
   })
 
   it('cannot be broken out of by a hostile title or subtitle', () => {
-    const tags = headTags(describePost(post({ title: '"><script>alert(1)</script>', subtitle: `'"><img src=x onerror=alert(2)>` }), SITE), 'Inkwell')
+    const tags = headTags(describePost(post({ title: '"><script>alert(1)</script>', subtitle: `'"><img src=x onerror=alert(2)>` }), SITE), 'Articles')
 
     expect(tags).not.toContain('<script>')
     expect(tags).not.toContain('<img')
@@ -288,10 +288,10 @@ describe('buildSitemap', () => {
     const xml = buildSitemap([post(), post({ slug: 'another-post', publishedAt: '2026-09-01T00:00:00Z' })], SITE.siteOrigin)
 
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true)
-    expect(xml).toContain('<loc>https://inkwell.example/</loc>')
-    expect(xml).toContain('<url><loc>https://inkwell.example/read/a-post</loc><lastmod>2026-10-01T09:30:00.000Z</lastmod></url>')
-    expect(xml).toContain('<loc>https://inkwell.example/read/another-post</loc>')
-    expect(xml).toContain('<loc>https://inkwell.example/privacy</loc>')
+    expect(xml).toContain('<loc>https://articles.example/</loc>')
+    expect(xml).toContain('<url><loc>https://articles.example/read/a-post</loc><lastmod>2026-10-01T09:30:00.000Z</lastmod></url>')
+    expect(xml).toContain('<loc>https://articles.example/read/another-post</loc>')
+    expect(xml).toContain('<loc>https://articles.example/privacy</loc>')
   })
 
   it('leaves out anything without a usable address, and a date it cannot read', () => {
@@ -311,10 +311,10 @@ describe('buildRss', () => {
   it('describes the site and each post', () => {
     const xml = buildRss([post({ subtitle: 'The subtitle.' })], SITE)
 
-    expect(xml).toContain('<title>Inkwell</title>')
-    expect(xml).toContain('<atom:link href="https://inkwell.example/rss.xml" rel="self" type="application/rss+xml"/>')
-    expect(xml).toContain('<item><title>A post</title><link>https://inkwell.example/read/a-post</link>')
-    expect(xml).toContain('<guid isPermaLink="true">https://inkwell.example/read/a-post</guid>')
+    expect(xml).toContain('<title>Articles</title>')
+    expect(xml).toContain('<atom:link href="https://articles.example/rss.xml" rel="self" type="application/rss+xml"/>')
+    expect(xml).toContain('<item><title>A post</title><link>https://articles.example/read/a-post</link>')
+    expect(xml).toContain('<guid isPermaLink="true">https://articles.example/read/a-post</guid>')
     expect(xml).toContain('<pubDate>Thu, 01 Oct 2026 09:30:00 GMT</pubDate>')
     expect(xml).toContain('<description>The subtitle.</description>')
     expect(xml).toContain('<category>Engineering</category>')
@@ -347,8 +347,8 @@ describe('buildLatest', () => {
 
     expect(LATEST_COUNT).toBe(3)
     expect(data.items.map((i) => i.title)).toEqual(['Post one', 'Post two', 'Post three'])
-    expect(data.items[0]).toEqual({ title: 'Post one', url: 'https://inkwell.example/read/one', date: expect.stringMatching(/^2026-10-01/), summary: expect.any(String) })
-    expect(data.url).toBe('https://inkwell.example/')
+    expect(data.items[0]).toEqual({ title: 'Post one', url: 'https://articles.example/read/one', date: expect.stringMatching(/^2026-10-01/), summary: expect.any(String) })
+    expect(data.url).toBe('https://articles.example/')
   })
 
   it('uses the subtitle as the summary when there is one', () => {
@@ -358,7 +358,7 @@ describe('buildLatest', () => {
   it('skips anything without a usable address', () => {
     const data = JSON.parse(buildLatest([post({ slug: 'Bad Slug!' }), post({ slug: 'good-one' }), null], SITE))
 
-    expect(data.items.map((i) => i.url)).toEqual(['https://inkwell.example/read/good-one'])
+    expect(data.items.map((i) => i.url)).toEqual(['https://articles.example/read/good-one'])
   })
 
   it('is an empty list, not an error, when there are no posts', () => {

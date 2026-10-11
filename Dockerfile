@@ -1,9 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-COPY Inkwell.slnx ./
+COPY Articles.slnx ./
 COPY src ./src
-RUN dotnet publish src/Inkwell.Api/Inkwell.Api.csproj -c Release -o /app/publish --nologo
+RUN dotnet publish src/Articles.Api/Articles.Api.csproj -c Release -o /app/publish --nologo
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
@@ -14,4 +14,4 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 ENV PORT=8080
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "Inkwell.Api.dll"]
+ENTRYPOINT ["dotnet", "Articles.Api.dll"]

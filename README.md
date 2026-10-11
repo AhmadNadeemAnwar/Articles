@@ -10,7 +10,7 @@ Live at https://articles.ahmadnadeem.dev, with a private admin portal at https:/
 | `src/` | ASP.NET Core 10 Web API (layered: Domain, Application, Infrastructure, Api) | Render |
 | `web/` | The public site: React 19 + Vite, plus a small Cloudflare Worker (`web/worker/`) | Cloudflare |
 | `admin/` | The owner's portal: React 19 + Vite, with a TipTap editor | Cloudflare |
-| `tools/Inkwell.AdminSetup` | One-off helper to create the authenticator secret | your machine |
+| `tools/Articles.AdminSetup` | One-off helper to create the authenticator secret | your machine |
 
 Everything runs on free plans. How to deploy is in [DEPLOY.md](DEPLOY.md); how to use and set up the
 admin portal is in [ADMIN.md](ADMIN.md).
@@ -22,7 +22,7 @@ Three processes.
 **API**, at http://localhost:5231 (Swagger at `/swagger`):
 
 ```bash
-dotnet run --project src/Inkwell.Api
+dotnet run --project src/Articles.Api
 ```
 
 **Public site**, at http://localhost:5173:
@@ -48,9 +48,9 @@ npm run dev --prefix admin
 Both sites proxy `/api` to the local API, so the browser stays on one origin in development.
 
 On first run the API applies its migrations and seeds three sample writers and a few posts into
-`src/Inkwell.Api/inkwell.db`. To sign in to the local admin portal, use `maya@example.com` and a code
+`src/Articles.Api/articles.db`. To sign in to the local admin portal, use `maya@example.com` and a code
 from an authenticator app loaded with the development secret in
-`src/Inkwell.Api/appsettings.Development.json` (`Admin:TotpSecret`). That secret and the seeded
+`src/Articles.Api/appsettings.Development.json` (`Admin:TotpSecret`). That secret and the seeded
 accounts exist only in development and are never used by the deployed site.
 
 The Worker is not part of `npm run dev`. To try it, run `npx wrangler dev` in `web/`; it serves the
@@ -59,7 +59,7 @@ built site from `web/dist` and talks to whatever `API_BASE` in `web/wrangler.jso
 ## Tests
 
 ```bash
-dotnet test tests/Inkwell.Tests
+dotnet test tests/Articles.Tests
 ```
 
 ```bash
@@ -113,12 +113,12 @@ Until a mail service key is configured the feature is off and the subscribe form
 
 ```
 src/
-  Inkwell.Domain              Entities, invariants, repository interfaces. No framework dependencies.
-  Inkwell.Application         Services, DTOs, validators, post-body checks. Depends on Domain.
-  Inkwell.Infrastructure      EF Core, repositories, SQLite migrations, tokens, mail. Depends on Domain + Application.
-  Inkwell.Migrations.Postgres The same migrations generated for Postgres, which production uses.
-  Inkwell.Api                 Controllers, middleware, rate limiting, DI.
-tests/Inkwell.Tests           xUnit + FluentAssertions.
+  Articles.Domain              Entities, invariants, repository interfaces. No framework dependencies.
+  Articles.Application         Services, DTOs, validators, post-body checks. Depends on Domain.
+  Articles.Infrastructure      EF Core, repositories, SQLite migrations, tokens, mail. Depends on Domain + Application.
+  Articles.Migrations.Postgres The same migrations generated for Postgres, which production uses.
+  Articles.Api                 Controllers, middleware, rate limiting, DI.
+tests/Articles.Tests           xUnit + FluentAssertions.
 web/                          Public site, and web/worker/ for the Cloudflare Worker.
 admin/                        Admin portal.
 offline/                      A "temporarily offline" page for pausing a site.

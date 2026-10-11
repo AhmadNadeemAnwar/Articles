@@ -126,14 +126,14 @@ describe('the site\'s look', () => {
   })
 
   it('still understands a theme remembered by an earlier version of the site', () => {
-    expect(rememberedLook(fakeStorage({ 'inkwell.theme': 'seagreen' }))).toEqual({ theme: 'seagreen' })
+    expect(rememberedLook(fakeStorage({ 'articles.theme': 'seagreen' }))).toEqual({ theme: 'seagreen' })
   })
 
   it('is the default for a first visit, a tampered value, or blocked storage', () => {
     expect(rememberedLook(fakeStorage())).toEqual({ theme: 'blue' })
-    expect(rememberedLook(fakeStorage({ 'inkwell.theme': '<script>' }))).toEqual({ theme: 'blue' })
-    expect(rememberedLook(fakeStorage({ 'inkwell.theme': '{"theme":"custom","colors":{"main":"red;x","background":"#fff"}}' }))).toEqual({ theme: 'blue' })
-    expect(rememberedLook(fakeStorage({ 'inkwell.theme': '{broken' }))).toEqual({ theme: 'blue' })
+    expect(rememberedLook(fakeStorage({ 'articles.theme': '<script>' }))).toEqual({ theme: 'blue' })
+    expect(rememberedLook(fakeStorage({ 'articles.theme': '{"theme":"custom","colors":{"main":"red;x","background":"#fff"}}' }))).toEqual({ theme: 'blue' })
+    expect(rememberedLook(fakeStorage({ 'articles.theme': '{broken' }))).toEqual({ theme: 'blue' })
     expect(rememberedLook(broken)).toEqual({ theme: 'blue' })
     expect(rememberedLook(null)).toEqual({ theme: 'blue' })
   })
@@ -224,8 +224,8 @@ describe('the reader\'s own colours', () => {
   })
 
   it('are ignored if what is stored has been tampered with', () => {
-    expect(readerColors(fakeStorage({ 'inkwell.reader-colors': '{"main":"#58c79b","background":"#101418;}*{display:none"}' }))).toBeNull()
-    expect(readerColors(fakeStorage({ 'inkwell.reader-colors': 'seagreen' }))).toBeNull()
+    expect(readerColors(fakeStorage({ 'articles.reader-colors': '{"main":"#58c79b","background":"#101418;}*{display:none"}' }))).toBeNull()
+    expect(readerColors(fakeStorage({ 'articles.reader-colors': 'seagreen' }))).toBeNull()
     expect(readerColors(broken)).toBeNull()
   })
 
