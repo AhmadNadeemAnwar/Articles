@@ -5,17 +5,17 @@ import { normalise, pageTitle, postPath, slugFromParams } from './site'
 
 describe('pageTitle', () => {
   it('puts the page first and the site second', () => {
-    expect(pageTitle('What I learned')).toBe('What I learned · Articles')
+    expect(pageTitle('What I learned')).toBe('What I learned · Articles | کھت از احمد')
   })
 
   it('is just the site name when the page has no name yet', () => {
-    expect(pageTitle()).toBe('Articles')
-    expect(pageTitle(null)).toBe('Articles')
-    expect(pageTitle('   ')).toBe('Articles')
+    expect(pageTitle()).toBe('Articles | کھت از احمد')
+    expect(pageTitle(null)).toBe('Articles | کھت از احمد')
+    expect(pageTitle('   ')).toBe('Articles | کھت از احمد')
   })
 
   it('tidies stray spacing and line breaks in a title', () => {
-    expect(pageTitle('  Two\n  lines ')).toBe('Two lines · Articles')
+    expect(pageTitle('  Two\n  lines ')).toBe('Two lines · Articles | کھت از احمد')
   })
 })
 

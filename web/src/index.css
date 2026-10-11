@@ -140,6 +140,10 @@ a:hover { color: var(--accent); }
 
 button { font: inherit; cursor: pointer; }
 
+/* A clear ring for keyboard users everywhere; on the dark header it takes the header's own bright colour. */
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.header a:focus-visible, .header button:focus-visible { outline-color: var(--accent-chrome); }
+
 input, textarea, select {
   font: inherit;
   color: var(--text);
@@ -188,6 +192,11 @@ input:focus, textarea:focus, select:focus {
   letter-spacing: -0.02em;
 }
 
+.brand { white-space: nowrap; }
+.brand__sep { margin: 0 0.5rem; font-weight: 300; opacity: 0.55; }
+/* The Urdu half of the name: an Urdu-capable font, a touch smaller, written right to left. */
+.brand__ur { font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', 'Segoe UI', Tahoma, serif; font-size: 0.95em; font-weight: 500; letter-spacing: 0; }
+@media (max-width: 520px) { .brand__sep, .brand__ur { display: none; } }
 .header__search { flex: 1; max-width: 17rem; }
 .header__search input {
   background: var(--chrome-raised);
@@ -201,7 +210,8 @@ input:focus, textarea:focus, select:focus {
 
 /* Buttons pick up page tones by default; on the dark header bar they need chrome-aware ones. */
 .header__nav .btn { border-color: var(--chrome-border); background: transparent; color: var(--chrome-text); }
-.header__nav .btn:hover:not(:disabled) { border-color: var(--accent-chrome); color: var(--accent-chrome); }
+/* The general button hover fills with a pale tint, which would bury this light text on the dark header; here it stays clear, as the header's own colour. */
+.header__nav .btn:hover:not(:disabled) { border-color: var(--accent-chrome); background: transparent; color: var(--accent-chrome); }
 .header__nav .btn--primary { background: var(--accent-chrome); border-color: var(--accent-chrome); color: var(--chrome); }
 .header__nav .btn--primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--chrome); }
 
@@ -243,7 +253,7 @@ input:focus, textarea:focus, select:focus {
   .sidebar { order: -1; position: static; top: auto; }
 }
 .sidebar__title {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-faint);
@@ -278,7 +288,7 @@ input:focus, textarea:focus, select:focus {
 .btn--danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--border-strong)); }
 .btn--danger:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
 .btn--block { width: 100%; justify-content: center; }
-.btn--icon { width: 2.15rem; height: 2.15rem; padding: 0; justify-content: center; flex: none; }
+.btn--icon { width: 2.4rem; height: 2.4rem; padding: 0; justify-content: center; flex: none; }
 
 /* ---- Tabs ----------------------------------------------------------------- */
 
@@ -310,7 +320,7 @@ input:focus, textarea:focus, select:focus {
   width: 1.6rem; height: 1.6rem; border-radius: 999px;
   background: var(--accent-soft); color: var(--accent);
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 0.75rem; font-weight: 600; flex: none;
+  font-size: 0.8rem; font-weight: 600; flex: none;
 }
 
 .avatar--lg { width: 4rem; height: 4rem; font-size: 1.5rem; }
@@ -321,8 +331,8 @@ input:focus, textarea:focus, select:focus {
   border: 1px solid var(--accent-soft);
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--accent-soft));
   border-radius: 999px;
-  padding: 0.15rem 0.6rem;
-  font-size: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--accent);
 }
@@ -477,7 +487,7 @@ input:focus, textarea:focus, select:focus {
 .category:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .category--active, .category--active:hover { background: var(--accent); border-color: var(--accent); color: var(--bg-raised); }
 
-.post-card__category { margin-left: auto; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+.post-card__category { margin-left: auto; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
 .article__category { display: inline-block; margin-bottom: 0.6rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
 
 /* ---- Reactions: an icon and a count ------------------------------------------------------- */

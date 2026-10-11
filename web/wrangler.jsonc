@@ -18,7 +18,7 @@
   "vars": {
     // Must match VITE_API_BASE in .env.production.
     "API_BASE": "https://articles-api-jkvr.onrender.com",
-    "SITE_NAME": "Articles",
+    "SITE_NAME": "Articles | کھت از احمد",
     "SITE_DESCRIPTION": "Articles by Ahmad Nadeem."
   },
   "routes": [

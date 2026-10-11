@@ -11,15 +11,15 @@ describe('the public site is branded Articles', () => {
   const html = read('./index.html')
 
   it('uses the new name and address in the page head', () => {
-    expect(html).toContain('<title>Articles by Ahmad Nadeem</title>')
-    expect(html).toContain('<meta property="og:site_name" content="Articles" />')
+    expect(html).toContain('<title>Articles | کھت از احمد</title>')
+    expect(html).toContain('<meta property="og:site_name" content="Articles | کھت از احمد" />')
     expect(html).toContain('https://articles.ahmadnadeem.dev/articles-share.png')
     expect(html).not.toMatch(OLD_RE)
   })
 
   it('names the site for link previews, sitemaps and feeds', () => {
     const config = read('./wrangler.jsonc')
-    expect(config).toContain('"SITE_NAME": "Articles"')
+    expect(config).toContain('"SITE_NAME": "Articles | کھت از احمد"')
     expect(config).toContain('"pattern": "articles.ahmadnadeem.dev"')
   })
 
@@ -34,7 +34,8 @@ describe('the public site is branded Articles', () => {
 
   it('says Articles in the header and footer', () => {
     const layout = read('./src/components/Layout.tsx')
-    expect(layout).toContain('className="brand">Articles</Link>')
+    expect(layout).toContain('className="brand">Articles<span')
+    expect(layout).toContain('lang="ur" dir="rtl">کھت از احمد</span>')
     expect(layout).toContain('Articles by Ahmad Nadeem')
     expect(layout).not.toMatch(OLD_RE)
   })

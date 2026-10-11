@@ -1,5 +1,8 @@
 export const SITE_NAME = 'Articles'
 
+/** The name as it appears in browser tabs and link previews: the English name, then the Urdu one. */
+export const SITE_TITLE = `${SITE_NAME} | کھت از احمد`
+
 /**
  * The owner's main site. Empty until that site is reachable: the link, and the contact line on the
  * privacy page, appear only when this is set (VITE_PORTFOLIO_URL in .env.production), so readers are
@@ -20,7 +23,7 @@ export function normalise(value: string | undefined): string | null {
 /** What the browser tab and history show: the page first, the site second. */
 export function pageTitle(page?: string | null): string {
   const clean = (page ?? '').replace(/\s+/g, ' ').trim()
-  return clean === '' ? SITE_NAME : `${clean} · ${SITE_NAME}`
+  return clean === '' ? SITE_TITLE : `${clean} · ${SITE_TITLE}`
 }
 
 // A post's address ends in a short code (see the API's SlugGenerator): "garden-notes-k3x9p".

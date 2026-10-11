@@ -21,7 +21,7 @@ export function Layout() {
     <div className="app">
       <header className="header">
         <div className="header__inner">
-          <Link to="/" className="brand">Articles</Link>
+          <Link to="/" className="brand">Articles<span className="brand__sep" aria-hidden="true">|</span><span className="brand__ur" lang="ur" dir="rtl">کھت از احمد</span></Link>
 
           <form className="header__search" onSubmit={onSearch} role="search">
             <input
