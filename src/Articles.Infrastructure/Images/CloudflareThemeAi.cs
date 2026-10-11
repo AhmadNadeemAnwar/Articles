@@ -67,14 +67,31 @@ public sealed class CloudflareThemeAi : IThemeAi
         }
     }
 
+    /// <summary>
+    /// The model's text. Workers AI answers in more than one shape depending on the model: "response" as text,
+    /// "response" as an already-parsed JSON object (when the reply happens to be valid JSON), or the
+    /// OpenAI-style "choices". All are read; anything else is "no answer".
+    /// </summary>
     internal static string Parse(string json)
     {
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
         var holder = root.TryGetProperty("result", out var result) && result.ValueKind == JsonValueKind.Object ? result : root;
-        return holder.TryGetProperty("response", out var response) && response.ValueKind == JsonValueKind.String
-            ? response.GetString() ?? string.Empty
-            : throw new DomainException("The AI sent back no answer. Try again.");
+
+        if (holder.TryGetProperty("response", out var response))
+        {
+            if (response.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(response.GetString())) return response.GetString()!;
+            if (response.ValueKind == JsonValueKind.Object) return response.GetRawText();
+        }
+
+        if (holder.TryGetProperty("choices", out var choices) && choices.ValueKind == JsonValueKind.Array && choices.GetArrayLength() > 0
+            && choices[0].TryGetProperty("message", out var message) && message.TryGetProperty("content", out var content))
+        {
+            if (content.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(content.GetString())) return content.GetString()!;
+            if (content.ValueKind == JsonValueKind.Object) return content.GetRawText();
+        }
+
+        throw new DomainException("The AI sent back no answer. Try again.");
     }
 
     private DomainException Failure(HttpStatusCode status, string body)

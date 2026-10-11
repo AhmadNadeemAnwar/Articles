@@ -176,6 +176,27 @@ public class CloudflareThemeAiTests
         messages[1].GetProperty("content").GetString().Should().Be("pick colours");
     }
 
+    [Theory]
+    [InlineData("{\"result\":{\"response\":{\"header\":\"#111111\"}},\"success\":true}", "{\"header\":\"#111111\"}")]
+    [InlineData("{\"result\":{\"choices\":[{\"message\":{\"content\":\"{\\\"header\\\":\\\"#222222\\\"}\"}}]}}", "{\"header\":\"#222222\"}")]
+    [InlineData("{\"result\":{\"choices\":[{\"message\":{\"content\":{\"header\":\"#333333\"}}}]}}", "{\"header\":\"#333333\"}")]
+    [InlineData("{\"response\":\"plain\"}", "plain")]
+    public async Task Every_shape_workers_ai_answers_in_is_read(string reply, string expected)
+    {
+        (await Ai(Replying(HttpStatusCode.OK, reply)).AskAsync("a", "b")).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("{\"result\":{\"response\":\"\"}}")]
+    [InlineData("{\"result\":{\"response\":null}}")]
+    [InlineData("{\"result\":{\"choices\":[]}}")]
+    public async Task An_empty_answer_is_reported(string reply)
+    {
+        var failure = await Record.ExceptionAsync(() => Ai(Replying(HttpStatusCode.OK, reply)).AskAsync("a", "b"));
+
+        failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("no answer");
+    }
+
     [Fact]
     public async Task The_days_free_allowance_being_spent_is_explained()
     {
