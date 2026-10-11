@@ -38,13 +38,32 @@ public sealed class ThemeSuggestionService : IThemeSuggestionService
     public const int DailyLimit = 20;
     public const int Attempts = 3;
 
-    private const string Instruction =
-        "You are a web designer choosing a colour theme for a personal blog of articles. " +
-        "Reply with ONLY a JSON object, no other text, in exactly this shape: " +
-        "{\"name\":\"two or three word theme name\",\"header\":\"#rrggbb\",\"accent\":\"#rrggbb\",\"background\":\"#rrggbb\"}. " +
-        "header is the bar across the top and may be deep or rich. accent is for links and buttons: a vivid, confident colour that stands out. " +
-        "background is the page behind the text and must be very light (like an off-white with a hint of colour) or very dark, never a mid-tone, so text is easy to read. " +
-        "The three must look good together. Be creative and distinctive, not generic.";
+    /// <summary>
+    /// The design brief the AI works to: a calm, premium, minimalist editorial publication. It is told to answer
+    /// with JSON only, and the answer is then checked in code like colours typed by hand.
+    /// </summary>
+    public const string Instruction = """
+        You are a senior visual designer choosing the colour theme of a personal article website that should feel like a premium digital publication: elegant, modern, minimalist, calm, distraction-free, with excellent readability for long reading.
+
+        Design principles:
+        - Choose three harmonious colours that look intentionally designed together, never arbitrary or loud. Restraint beats novelty.
+        - background: the page behind the text. Warm off-white (like #faf7f2), warm cream (like #f4ecd8) or deep charcoal (like #1c1e21). Never pure white, never pure black, never a mid-tone. Text must be easy to read on it for a long time.
+        - header: the bar across the top. A deep, muted, sophisticated tone that sits comfortably with the background (dark charcoal-teal, ink, espresso, deep forest, aubergine and so on).
+        - accent: for links and buttons. A refined but clearly visible colour with good contrast on the background (muted teal, terracotta, ochre, moss, dusty blue, plum). Confident, not neon, not pastel.
+        - Avoid garish, saturated, clashing, rainbow or gradient-like combinations. Avoid generic bright blue, bright green and hot pink.
+
+        Reference palettes, only to show the level of taste wanted. Do not copy them:
+        Light:  {"name":"Quiet Teal","header":"#1f2d30","accent":"#1f7a7a","background":"#faf7f2"}
+        Dark:   {"name":"Night Reader","header":"#14161a","accent":"#6cc0b8","background":"#1c1e21"}
+        Sepia:  {"name":"Old Library","header":"#3b2a1d","accent":"#9a5b2e","background":"#f4ecd8"}
+
+        Reply with ONLY one JSON object and no other text, in exactly this shape:
+        {"name":"two or three word theme name","header":"#rrggbb","accent":"#rrggbb","background":"#rrggbb"}
+        """;
+
+    /// <summary>The directions the AI is steered between, so pressing the button again gives something genuinely different.</summary>
+    private static readonly string[] Moods = ["light with warm off-white paper", "sepia, like a book page", "dark and restful, like a late-night reading lamp", "light and airy with a cool undertone"];
+    private static readonly string[] Hues = ["teal", "terracotta", "moss green", "dusty blue", "plum", "ochre", "slate", "rust", "indigo", "olive", "rose clay", "deep forest"];
 
     private static readonly SemaphoreSlim Gate = new(1, 1);
 
@@ -83,8 +102,7 @@ public sealed class ThemeSuggestionService : IThemeSuggestionService
                 throw new DomainException($"You have asked the AI {DailyLimit} times today. This keeps the service free. The count resets at midnight UTC.");
 
             var current = ThemeColors.Read(await _site.GetSettingAsync(ThemeColors.SettingKey, ct));
-            var request = "Choose a fresh theme. " +
-                $"Style seed: {Random.Shared.Next(1000, 9999)}. " +
+            var request = $"Design a fresh theme this time: {Moods[Random.Shared.Next(Moods.Length)]}, with {Hues[Random.Shared.Next(Hues.Length)]} as the accent family. " +
                 (current is null ? string.Empty : $"Do not repeat the current colours ({current.Main}, {current.Accent}, {current.Background}).");
 
             // Counted once the provider has been asked, whether or not the answer turns out to be usable.

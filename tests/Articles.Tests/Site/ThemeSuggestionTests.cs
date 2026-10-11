@@ -131,6 +131,17 @@ public class ThemeSuggestionTests : IDisposable
     }
 
     [Fact]
+    public async Task The_ai_is_given_the_editorial_brief_and_a_direction_to_vary_each_time()
+    {
+        ThemeSuggestionService.Instruction.Should().Contain("premium digital publication").And.Contain("Never pure white, never pure black").And.Contain("ONLY one JSON object");
+
+        for (var i = 0; i < 18; i++) await _service.SuggestAsync("owner@example.com");
+
+        _ai.Requests.Should().OnlyContain(r => r.StartsWith("Design a fresh theme this time:"));
+        _ai.Requests.Distinct().Count().Should().BeGreaterThan(4, "each go steers the AI somewhere different");
+    }
+
+    [Fact]
     public async Task Without_the_service_set_up_it_says_so_and_asks_nobody()
     {
         _ai.IsEnabled = false;
@@ -194,7 +205,7 @@ public class CloudflareThemeAiTests
     {
         var failure = await Record.ExceptionAsync(() => Ai(Replying(HttpStatusCode.OK, reply)).AskAsync("a", "b"));
 
-        failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("no answer");
+        failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("no answer").And.Contain("Cloudflare said: ").And.Contain("result");
     }
 
     [Fact]

@@ -56,7 +56,18 @@ public sealed class CloudflareThemeAi : IThemeAi
             var body = await response.Content.ReadAsStringAsync(timeout.Token);
 
             if (!response.IsSuccessStatusCode) throw Failure(response.StatusCode, body);
-            return Parse(body);
+            try
+            {
+                return Parse(body);
+            }
+            catch (DomainException)
+            {
+                // The model's own words and Cloudflare's wrapper hold nothing secret, so a short piece of what came back
+                // is shown: it is the only way to see what shape an unexpected answer has.
+                var seen = Snippet(body);
+                _logger.LogWarning("Cloudflare AI answered with nothing readable: {Body}", seen);
+                throw new DomainException($"The AI sent back no answer. Cloudflare said: {seen}");
+            }
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException)
         {
@@ -92,6 +103,13 @@ public sealed class CloudflareThemeAi : IThemeAi
         }
 
         throw new DomainException("The AI sent back no answer. Try again.");
+    }
+
+    /// <summary>The start of a reply on one line, for explaining a reply that could not be read.</summary>
+    internal static string Snippet(string body)
+    {
+        var flat = string.Join(' ', (body ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return flat.Length <= 240 ? flat : flat[..240] + "…";
     }
 
     private DomainException Failure(HttpStatusCode status, string body)
