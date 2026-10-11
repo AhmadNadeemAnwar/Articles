@@ -19,16 +19,16 @@ one, stop and check you picked the free option.
 
 ## 0. Put the code on GitHub (separate repo)
 
-Render deploys from GitHub. Use a **new private repo containing only `inkwell/`**, not the whole
+Render deploys from GitHub. Use a **new private repo containing only `articles/`**, not the whole
 `Claude` folder, which holds unrelated projects.
 
 ```bash
-cd inkwell
+cd articles
 git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/<you>/inkwell.git
+git remote add origin https://github.com/<you>/articles.git
 git push -u origin main
 ```
 
@@ -36,7 +36,7 @@ Check `git status` before pushing: `*.db` files and `node_modules/` should not b
 
 ## 1. Database: Neon
 
-1. Sign up at neon.tech (GitHub login works) and create a project named `inkwell`.
+1. Sign up at neon.tech (GitHub login works) and create a project named `articles`.
 2. Open **Connect**. **Turn Connection pooling OFF** and copy the connection string
    (`postgresql://...`). The direct connection is the right one: migrations run on startup and
    use session-level locks, which pooled connections can break.
@@ -90,7 +90,7 @@ If Render gave the service a different URL (the name was taken), put that URL in
 
 ## 3. Frontend: Cloudflare
 
-From the `inkwell` folder:
+From the `articles` folder:
 
 ```bash
 cd web

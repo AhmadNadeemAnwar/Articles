@@ -40,7 +40,7 @@ the rest of the portal works without them.
 ### 1. Create your authenticator secret (2 minutes)
 
 You need an authenticator app on your phone (Google Authenticator, Microsoft Authenticator, Authy,
-1Password, any of them). From the `inkwell` folder, using your **Articles login email**:
+1Password, any of them). From the `articles` folder, using your **Articles login email**:
 
 ```powershell
 dotnet run --project tools/Articles.AdminSetup -- you@example.com
