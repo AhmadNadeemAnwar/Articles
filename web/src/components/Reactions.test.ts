@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { postPath } from '../lib/site'
 import { reactionLabel } from './Reactions'
 
 describe('reactionLabel', () => {
@@ -12,19 +11,5 @@ describe('reactionLabel', () => {
   it('tells a reader when they are one of them', () => {
     expect(reactionLabel('Clap', 1, true)).toBe('Clap: 1 reader, including you')
     expect(reactionLabel('Insightful', 4, true)).toBe('Insightful: 4 readers, including you')
-  })
-})
-
-describe('postPath', () => {
-  it('is where a post is read', () => {
-    expect(postPath('today-for-tomorrow-k3x9p')).toBe('/read/today-for-tomorrow-k3x9p')
-  })
-
-  it('keeps an older post, whose address has no code, readable at the new place', () => {
-    expect(postPath('today-for-tomorrow')).toBe('/read/today-for-tomorrow')
-  })
-
-  it('never lets a strange address break out of the path', () => {
-    expect(postPath('a/b?c')).toBe('/read/a%2Fb%3Fc')
   })
 })

@@ -34,7 +34,7 @@ export function PrivacyPage() {
           Clearing this site's data in your browser removes it.
         </p>
         <p>
-          If you use the palette button to choose your own colours, those two colours are kept in the same place so
+          If you use the palette button to choose your own colours, those colours are kept in the same place so
           the site looks the same on your next visit. They stay on your device and are never sent to the site.
         </p>
 

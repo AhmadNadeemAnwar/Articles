@@ -10,8 +10,10 @@
     // Any path that is not a real file serves index.html, so /p/some-slug works on refresh.
     "not_found_handling": "single-page-application",
     // The Worker runs only for these addresses. Everything else is served straight from the static
-    // files and does not count towards the free plan's 100,000 Worker runs a day.
-    "run_worker_first": ["/read/*", "/p/*", "/media/*", "/sitemap.xml", "/rss.xml", "/latest.json"]
+    // files and does not count towards the free plan's 100,000 Worker runs a day. "/*/*" is every address
+    // with two or more parts: that is where posts live (/<category>/<name>/<code>), and the Worker
+    // passes anything that is not a post straight on. The built files under /assets/ are left out.
+    "run_worker_first": ["/read/*", "/p/*", "/media/*", "/sitemap.xml", "/rss.xml", "/latest.json", "/*/*", "!/assets/*"]
   },
   "vars": {
     // Must match VITE_API_BASE in .env.production.

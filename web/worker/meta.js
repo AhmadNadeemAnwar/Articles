@@ -44,20 +44,58 @@ export function escapeText(value) {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
 }
 
-/**
- * The post address in a URL path, or null if it is not shaped like one (so it is never sent to the
- * API). Posts are read at /read/<post>; /p/<post> is where they used to live and still opens them.
- */
-export function slugFromPath(pathname) {
-  const match = /^\/(?:read|p)\/([^/]+)\/?$/.exec(pathname)
-  if (!match) return null
-  let slug
+/** The short code that ends a post's address, e.g. the "k3x9p" of "garden-notes-k3x9p" (the API's alphabet). */
+const CODE = /^[2-9a-hjkmnp-z]{5}$/
+const NAME_AND_CODE = /^(.+)-([2-9a-hjkmnp-z]{5})$/
+
+/** First parts of an address that already mean something else; the site's own pages, never a category or a post. */
+export const RESERVED_SEGMENTS = ['read', 'p', 'media', 'assets', 'tag', 'search', 'privacy', 'subscribe', 'unsubscribe', 'api', 'rss', 'sitemap', 'latest', 'admin']
+
+const decode = (part) => {
   try {
-    slug = decodeURIComponent(match[1])
+    return decodeURIComponent(part)
   } catch {
     return null
   }
-  return SLUG.test(slug) ? slug : null
+}
+
+/**
+ * The post address in a URL path, or null if it is not shaped like one (so it is never sent to the
+ * API). Posts are read at /<category>/<name>/<code>, /<name>/<code> (no category) or
+ * /<category>/<address> (the first posts have no code). /read/<address> is the plain form, and
+ * /p/<address> is where posts used to live; both still open them. The category is only for readers:
+ * the post is found without it, so moving a post never breaks a shared link.
+ */
+export function slugFromPath(pathname) {
+  const parts = String(pathname).replace(/\/$/, '').split('/')
+  if (parts[0] !== '' || parts.length < 3 || parts.length > 4) return null
+  const [, first, second, third] = parts.map((part) => (part === '' ? part : decode(part)))
+  if (!first || !second || (parts.length === 4 && !third)) return null
+
+  let slug
+  if (parts.length === 3 && (first === 'read' || first === 'p')) slug = second
+  else if (RESERVED_SEGMENTS.includes(first) || !SLUG.test(first)) return null
+  else if (parts.length === 4) slug = CODE.test(third) ? `${second}-${third}` : null
+  else slug = CODE.test(second) ? `${first}-${second}` : second
+
+  return slug && SLUG.test(slug) ? slug : null
+}
+
+/**
+ * The one true address of a post, as a path: the same rule the site uses to build its links. With
+ * no category, or a first part that would be mistaken for one of the site's own pages, /read/<address>.
+ */
+export function postPathFor(post) {
+  const slug = post.slug
+  const category = typeof post.category?.slug === 'string' && SLUG.test(post.category.slug) ? post.category.slug : null
+  const match = NAME_AND_CODE.exec(slug)
+  if (match) {
+    if (category) return `/${category}/${match[1]}/${match[2]}`
+    if (!RESERVED_SEGMENTS.includes(match[1])) return `/${match[1]}/${match[2]}`
+  } else if (category) {
+    return `/${category}/${slug}`
+  }
+  return `/read/${slug}`
 }
 
 /** The picture id in a /media/<id> address, or null if the address is not exactly that shape. */
@@ -68,8 +106,7 @@ export function mediaIdFromPath(pathname) {
 
 /** Where an old /p/<post> address should send people, or null if the path is not one. */
 export function oldPostRedirect(pathname) {
-  const match = /^\/p\/([^/]+)\/?$/.exec(pathname)
-  if (!match) return null
+  if (!/^\/p\/[^/]+\/?$/.test(pathname)) return null
   const slug = slugFromPath(pathname)
   return slug ? `/read/${slug}` : null
 }
@@ -159,8 +196,8 @@ export function describePost(post, { siteName, siteOrigin }) {
     title: `${post.title} · ${siteName}`,
     heading: post.title,
     description,
-    // Always the /read/ address, so a post shared through an old /p/ link is still treated as one page.
-    url: `${siteOrigin}/read/${post.slug}`,
+    // Always the same address, so a post shared through an old /read/ or /p/ link is still treated as one page.
+    url: `${siteOrigin}${postPathFor(post)}`,
     image,
     author: post.author?.displayName ?? null,
     publishedAt: post.publishedAt ?? null,
@@ -199,7 +236,7 @@ export function buildSitemap(posts, siteOrigin) {
   const entry = (loc, lastmod) => `<url><loc>${escapeText(loc)}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`
   const urls = [
     entry(`${siteOrigin}/`),
-    ...published(posts).map((post) => entry(`${siteOrigin}/read/${post.slug}`, isoDate(post.publishedAt))),
+    ...published(posts).map((post) => entry(`${siteOrigin}${postPathFor(post)}`, isoDate(post.publishedAt))),
     entry(`${siteOrigin}/privacy`),
   ]
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>\n`
@@ -213,7 +250,7 @@ export function buildLatest(posts, { siteName, siteOrigin }, limit = LATEST_COUN
     .slice(0, limit)
     .map((post) => ({
       title: String(post.title ?? ''),
-      url: `${siteOrigin}/read/${post.slug}`,
+      url: `${siteOrigin}${postPathFor(post)}`,
       date: isoDate(post.publishedAt),
       summary: summarise(post.subtitle || post.excerpt || ''),
     }))
@@ -230,7 +267,7 @@ export function corsHeadersFor(origin, allowed = LATEST_READERS) {
 
 export function buildRss(posts, { siteName, siteOrigin, description }) {
   const items = published(posts).map((post) => {
-    const link = `${siteOrigin}/read/${post.slug}`
+    const link = `${siteOrigin}${postPathFor(post)}`
     const date = new Date(post.publishedAt)
     return [
       '<item>',

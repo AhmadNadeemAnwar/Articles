@@ -4,7 +4,7 @@ import { postPath } from '../lib/site'
 import { Avatar, ErrorNote, Spinner, TagPill, formatDate } from './ui'
 
 export function PostCard({ post }: { post: PostSummary }) {
-  const href = postPath(post.slug)
+  const href = postPath(post.slug, post.category?.slug)
 
   return (
     <article className="post-card">

@@ -47,10 +47,10 @@ describe('describeTheme', () => {
 })
 
 describe('customColoursState', () => {
-  const plum = { main: '#7a1f5c', background: '#fff8f0' }
+  const plum = { main: '#7a1f5c', accent: '#7a1f5c', background: '#fff8f0' }
 
   it('lets new colours be saved', () => {
-    expect(customColoursState(plum, { theme: 'blue', colors: { main: '#17694a', background: '#ffffff' } })).toEqual({ problem: null, inUse: false, canSave: true })
+    expect(customColoursState(plum, { theme: 'blue', colors: { main: '#17694a', accent: '#17694a', background: '#ffffff' } })).toEqual({ problem: null, inUse: false, canSave: true })
   })
 
   it('lets saved colours be switched on when a ready-made theme is in use', () => {
@@ -63,11 +63,12 @@ describe('customColoursState', () => {
 
   it('allows a change to either colour of the custom theme in use', () => {
     expect(customColoursState({ ...plum, main: '#224488' }, { theme: 'custom', colors: plum }).canSave).toBe(true)
+    expect(customColoursState({ ...plum, accent: '#224488' }, { theme: 'custom', colors: plum }).canSave).toBe(true)
     expect(customColoursState({ ...plum, background: '#ffffff' }, { theme: 'custom', colors: plum }).canSave).toBe(true)
   })
 
   it('will not save a background text cannot be read on', () => {
-    const state = customColoursState({ main: '#7a1f5c', background: '#808080' }, { theme: 'blue', colors: plum })
+    const state = customColoursState({ main: '#7a1f5c', accent: '#7a1f5c', background: '#808080' }, { theme: 'blue', colors: plum })
 
     expect(state.problem).toMatch(/lighter or a darker/)
     expect(state.canSave).toBe(false)

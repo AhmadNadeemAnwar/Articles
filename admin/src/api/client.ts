@@ -138,7 +138,7 @@ export const api = {
   notifyPost: (postId: string) => request<NotifyResult>('POST', `/api/v1/admin/posts/${postId}/notify`),
 
   settings: () => request<SiteSettings>('GET', '/api/v1/admin/settings'),
-  updateSettings: (theme: string, colors?: { main: string; background: string }) =>
+  updateSettings: (theme: string, colors?: { main: string; accent: string; background: string }) =>
     request<SiteSettings>('PUT', '/api/v1/admin/settings', { theme, ...colors }),
 
   categories: () => request<Category[]>('GET', '/api/v1/admin/categories'),

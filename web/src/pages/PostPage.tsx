@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { CopyLinkButton } from '../components/CopyLinkButton'
 import { Reactions } from '../components/Reactions'
@@ -8,14 +8,24 @@ import { Avatar, EmptyState, Spinner, TagPill, formatDate } from '../components/
 import { useAsync } from '../hooks/useAsync'
 import { useTitle } from '../hooks/useTitle'
 import { safeImageSrc } from '../lib/safeUrl'
-import { postPath } from '../lib/site'
+import { postDisplayPath, postPath, slugFromParams } from '../lib/site'
 
 export function PostPage() {
-  const { slug = '' } = useParams()
+  const slug = slugFromParams(useParams())
+  const location = useLocation()
+  const navigate = useNavigate()
 
   const loaded = useAsync(() => api.post(slug), [slug])
   const post = loaded.data
   useTitle(post?.title ?? null)
+
+  // However the post was reached (an old /read/ link, a category it has since left), the address bar settles on its own.
+  const canonical = post ? postPath(post.slug, post.category?.slug) : null
+  useEffect(() => {
+    if (canonical && decodeURIComponent(location.pathname) !== decodeURIComponent(canonical)) {
+      navigate({ pathname: canonical, search: location.search, hash: location.hash }, { replace: true })
+    }
+  }, [canonical, location.pathname, location.search, location.hash, navigate])
 
   const postId = post?.id
   useEffect(() => {
@@ -37,7 +47,8 @@ export function PostPage() {
     )
   }
 
-  const link = `${window.location.origin}${postPath(post.slug)}`
+  const link = `${window.location.origin}${postPath(post.slug, post.category?.slug)}`
+  const shown = postDisplayPath(post.title, post.category?.name)
   const cover = safeImageSrc(post.coverImageUrl)
 
   const hasRelated = Boolean(related.data && related.data.length > 0)
@@ -50,7 +61,7 @@ export function PostPage() {
         )}
         <div className="article__title-row">
           <h1 className="article__title">{post.title}</h1>
-          <CopyLinkButton url={link} compact />
+          <CopyLinkButton url={link} shown={shown} compact />
         </div>
         {post.subtitle && <p className="article__subtitle">{post.subtitle}</p>}
 
@@ -77,7 +88,7 @@ export function PostPage() {
         <div className="actionbar">
           <Reactions postId={post.id} clapCount={post.clapCount} insightfulCount={post.insightfulCount} />
           <span className="actionbar__spacer" />
-          <CopyLinkButton url={link} />
+          <CopyLinkButton url={link} shown={shown} />
         </div>
       </article>
 
@@ -97,7 +108,7 @@ export function PostPage() {
             <ul className="related">
               {related.data!.map((item) => (
                 <li key={item.id}>
-                  <Link to={postPath(item.slug)}>{item.title}</Link>
+                  <Link to={postPath(item.slug, item.category?.slug)}>{item.title}</Link>
                   <span className="faint">{item.readingTimeMinutes} min read</span>
                 </li>
               ))}

@@ -102,7 +102,7 @@ public class SitePipelineTests : IClassFixture<AdminApiFactory>
     {
         var token = await AdminTokenAsync();
 
-        var saved = await Send(HttpMethod.Put, "/api/v1/admin/settings", token, new { theme = "custom", main = "#7A1F5C", background = "#fff8f0" });
+        var saved = await Send(HttpMethod.Put, "/api/v1/admin/settings", token, new { theme = "custom", main = "#7A1F5C", background = "#fff8f0", accent = "#B35A00" });
 
         saved.StatusCode.Should().Be(HttpStatusCode.OK);
         (await Json(saved)).GetProperty("colors").GetProperty("main").GetString().Should().Be("#7a1f5c");
@@ -110,6 +110,7 @@ public class SitePipelineTests : IClassFixture<AdminApiFactory>
         site.GetProperty("theme").GetString().Should().Be("custom");
         site.GetProperty("colors").GetProperty("main").GetString().Should().Be("#7a1f5c");
         site.GetProperty("colors").GetProperty("background").GetString().Should().Be("#fff8f0");
+        site.GetProperty("colors").GetProperty("accent").GetString().Should().Be("#b35a00");
 
         (await Send(HttpMethod.Put, "/api/v1/admin/settings", token, new { theme = "blue" })).StatusCode.Should().Be(HttpStatusCode.OK);
         (await Json(await Send(HttpMethod.Get, "/api/v1/site"))).GetProperty("colors").ValueKind.Should().Be(JsonValueKind.Null);

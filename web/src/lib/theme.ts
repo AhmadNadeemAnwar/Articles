@@ -4,9 +4,9 @@ import type { ThemeColors } from './palette'
 /**
  * How the site looks. Two things decide it:
  *
- *   the site's look    chosen by the owner in the admin portal: a ready-made theme, or two colours
+ *   the site's look    chosen by the owner in the admin portal: a ready-made theme, or three colours
  *                      of their own. It arrives from the API a moment after the page starts.
- *   the reader's look  two colours a reader picked for themselves with the palette button. It is
+ *   the reader's look  three colours a reader picked for themselves with the palette button. It is
  *                      kept in this browser only and, while it exists, wins over the site's.
  *
  * Both are remembered in this browser and applied before anything is drawn, so a returning reader
@@ -25,8 +25,8 @@ const READER_KEY = 'articles.reader-colors'
 
 /** Roughly what each ready-made theme looks like, so the reader's pickers start from what is on screen. */
 const NEAREST: Record<Theme, ThemeColors> = {
-  blue: { main: '#185fa5', background: '#f2f2f1' },
-  seagreen: { main: '#17694a', background: '#ffffff' },
+  blue: { main: '#185fa5', accent: '#185fa5', background: '#f2f2f1' },
+  seagreen: { main: '#17694a', accent: '#17694a', background: '#ffffff' },
 }
 
 /** Only a theme this build has styles for is ever applied; anything else is the default. */
@@ -34,7 +34,7 @@ export function toTheme(value: unknown): Theme {
   return typeof value === 'string' && (THEMES as readonly string[]).includes(value) ? (value as Theme) : DEFAULT_THEME
 }
 
-/** A look that can safely be put on the page. A custom theme without two usable colours is the default. */
+/** A look that can safely be put on the page. A custom theme without usable colours is the default. */
 export function toLook(theme: unknown, colors?: unknown): Look {
   if (theme !== 'custom') return { theme: toTheme(theme) }
   const clean = toColors(colors)
@@ -156,7 +156,7 @@ export function chooseReaderColors(
   return true
 }
 
-/** What the reader's two pickers show when opened: their own colours, else the nearest thing to what is on screen. */
+/** What the reader's three pickers show when opened: their own colours, else the nearest thing to what is on screen. */
 export function pickerColors(storage: Store | null = safeStorage()): ThemeColors {
   const look = currentLook(storage)
   return look.theme === 'custom' ? look.colors : NEAREST[look.theme]

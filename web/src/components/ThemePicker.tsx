@@ -4,7 +4,7 @@ import type { ThemeColors } from '../lib/palette'
 import { chooseReaderColors, pickerColors, readerColors } from '../lib/theme'
 
 /**
- * Lets a reader pick two colours of their own. The choice is applied as they pick, kept in this
+ * Lets a reader pick three colours of their own. The choice is applied as they pick, kept in this
  * browser only, and never sent anywhere; "Use the site's colours" forgets it.
  */
 export function ThemePicker() {
@@ -71,8 +71,13 @@ export function ThemePicker() {
           <p className="palette__title">Your colours</p>
 
           <label className="palette__row" htmlFor={`${id}-main`}>
-            <span>Main colour<small>Header, links and buttons</small></span>
+            <span>Header<small>The bar across the top</small></span>
             <input id={`${id}-main`} type="color" value={colors.main} onChange={(e) => pick('main', e.target.value)} />
+          </label>
+
+          <label className="palette__row" htmlFor={`${id}-accent`}>
+            <span>Links and buttons<small>Whatever you can click</small></span>
+            <input id={`${id}-accent`} type="color" value={colors.accent} onChange={(e) => pick('accent', e.target.value)} />
           </label>
 
           <label className="palette__row" htmlFor={`${id}-background`}>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  DEFAULT_SHARE_IMAGE, FETCHER_TIMEOUT_MS, LATEST_COUNT, LATEST_READERS, buildLatest, corsHeadersFor, PREVIEW_FRESH_MS, READER_TIMEOUT_MS, absoluteImage, firstImageId, isStale, mediaIdFromPath, oldPostRedirect, buildRss, buildSitemap, describePost, escapeText, headTags, plainText,
+  DEFAULT_SHARE_IMAGE, FETCHER_TIMEOUT_MS, LATEST_COUNT, LATEST_READERS, buildLatest, corsHeadersFor, postPathFor, PREVIEW_FRESH_MS, READER_TIMEOUT_MS, absoluteImage, firstImageId, isStale, mediaIdFromPath, oldPostRedirect, buildRss, buildSitemap, describePost, escapeText, headTags, plainText,
   slugFromPath, summarise, timeoutFor,
 } from './meta.js'
 
@@ -65,7 +65,30 @@ describe('slugFromPath', () => {
     expect(slugFromPath('/p/what-i-learned')).toBe('what-i-learned')
   })
 
-  it.each(['/reading/a-post', '/read', '/read/', '/read/a/b', '/x/a-post', '/read/..%2Fadmin'])('refuses %s', (path) => {
+  it('reads a post from /<category>/<name>/<code>, and from /<name>/<code> when it has no category', () => {
+    expect(slugFromPath('/life-and-lessons/today-for-tomorrow/k3x9p')).toBe('today-for-tomorrow-k3x9p')
+    expect(slugFromPath('/life-and-lessons/today-for-tomorrow/k3x9p/')).toBe('today-for-tomorrow-k3x9p')
+    expect(slugFromPath('/today-for-tomorrow/k3x9p')).toBe('today-for-tomorrow-k3x9p')
+  })
+
+  it('does not care which category the address names, since the post is found without it', () => {
+    expect(slugFromPath('/some-other-shelf/today-for-tomorrow/k3x9p')).toBe('today-for-tomorrow-k3x9p')
+  })
+
+  it('reads a post that has no code from /<category>/<address>', () => {
+    expect(slugFromPath('/life-and-lessons/today-for-tomorrow')).toBe('today-for-tomorrow')
+  })
+
+  it.each(['/search/abcde', '/tag/faith', '/privacy/x', '/assets/index-abc.js', '/media/abc/def', '/read/a/b', '/p/a/b', '/api/v1/posts', '/subscribe/confirm'])(
+    'leaves %s to the site\'s own pages', (path) => {
+      expect(slugFromPath(path)).toBeNull()
+    })
+
+  it.each(['/@ahmad/post/k3x9p', '/life/a-post/not-a-code', '/life/a-post/k3x9p/extra', '//k3x9p', '/life//k3x9p', '/Life/a-post/k3x9p'])('refuses %s', (path) => {
+    expect(slugFromPath(path)).toBeNull()
+  })
+
+  it.each(['/read', '/read/', '/..%2Fadmin', '/read/..%2Fadmin'])('refuses %s', (path) => {
     expect(slugFromPath(path)).toBeNull()
   })
 
@@ -75,6 +98,43 @@ describe('slugFromPath', () => {
       expect(slugFromPath(path)).toBeNull()
     },
   )
+})
+
+describe('postPathFor', () => {
+  const shelf = { slug: 'life-and-lessons' }
+
+  it('is /<category>/<name>/<code> for a post in a category', () => {
+    expect(postPathFor({ slug: 'today-for-tomorrow-k3x9p', category: shelf })).toBe('/life-and-lessons/today-for-tomorrow/k3x9p')
+  })
+
+  it('is /<name>/<code> for a post in no category', () => {
+    expect(postPathFor({ slug: 'today-for-tomorrow-k3x9p', category: null })).toBe('/today-for-tomorrow/k3x9p')
+    expect(postPathFor({ slug: 'today-for-tomorrow-k3x9p' })).toBe('/today-for-tomorrow/k3x9p')
+  })
+
+  it('keeps a post with no code findable: /<category>/<address>, or /read/<address> in no category', () => {
+    expect(postPathFor({ slug: 'today-for-tomorrow', category: shelf })).toBe('/life-and-lessons/today-for-tomorrow')
+    expect(postPathFor({ slug: 'today-for-tomorrow', category: null })).toBe('/read/today-for-tomorrow')
+  })
+
+  it('does not start an address with a word that is one of the site\'s own pages', () => {
+    expect(postPathFor({ slug: 'tag-k3x9p', category: null })).toBe('/read/tag-k3x9p')
+    expect(postPathFor({ slug: 'search-k3x9p', category: null })).toBe('/read/search-k3x9p')
+  })
+
+  it('ignores a category address that is not plain, so nothing odd reaches a link', () => {
+    expect(postPathFor({ slug: 'a-post-k3x9p', category: { slug: '../x' } })).toBe('/a-post/k3x9p')
+  })
+
+  it.each([
+    [{ slug: 'today-for-tomorrow-k3x9p', category: shelf }],
+    [{ slug: 'today-for-tomorrow-k3x9p', category: null }],
+    [{ slug: 'today-for-tomorrow', category: shelf }],
+    [{ slug: 'today-for-tomorrow', category: null }],
+    [{ slug: 'tag-k3x9p', category: null }],
+  ])('gives an address that leads back to the same post: %j', (post) => {
+    expect(slugFromPath(postPathFor(post))).toBe(post.slug)
+  })
 })
 
 describe('plainText', () => {
@@ -222,8 +282,9 @@ describe('describePost', () => {
     expect(describePost(post({ contentJson: '{}' }), SITE).description).toBe('An article on Articles.')
   })
 
-  it('gives the /read/ address as the one true address of a post', () => {
+  it('gives the category address as the one true address of a post', () => {
     expect(describePost(post(), SITE).url).toBe('https://articles.example/read/a-post')
+    expect(describePost(post({ slug: 'a-post-k3x9p', category: { slug: 'life' } }), SITE).url).toBe('https://articles.example/life/a-post/k3x9p')
     expect(headTags(describePost(post(), SITE), 'Articles')).toContain('<link rel="canonical" href="https://articles.example/read/a-post">')
   })
 

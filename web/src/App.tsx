@@ -36,6 +36,9 @@ export default function App() {
               whole segment and ProfilePage requires the leading "@". Static routes above outrank
               this one, so /search, /privacy etc. are unaffected. */}
           <Route path="/:handle" element={<ProfilePage />} />
+          {/* A post's own address: /<category>/<name>/<code>, /<name>/<code> or /<category>/<address>. */}
+          <Route path="/:category/:name/:code" element={<PostPage />} />
+          <Route path="/:first/:second" element={<PostPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

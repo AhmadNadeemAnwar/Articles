@@ -10,8 +10,8 @@ describe('the palette code', () => {
     expect(tidy(here)).toBe(tidy(site))
   })
 
-  it('works out a full set of colours from two', () => {
-    const palette = paletteFrom({ main: '#7a1f5c', background: '#fff8f0' })
+  it('works out a full set of colours from three', () => {
+    const palette = paletteFrom({ main: '#7a1f5c', accent: '#7a1f5c', background: '#fff8f0' })
 
     expect(palette['--bg']).toBe('#fff8f0')
     expect(palette['--chrome']).toBe('#7a1f5c')

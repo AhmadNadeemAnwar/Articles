@@ -1,15 +1,17 @@
 /**
- * A custom theme is two colours: a main colour (header, links, buttons) and a page background.
+ * A custom theme is three colours: a header colour, an accent for links and buttons, and a page background.
  * Everything else the stylesheet needs (text, borders, hover shades, the colours used on top of
  * the header) is worked out here, and each one that carries text is pushed darker or lighter until
- * it can be read. So whatever two colours are chosen, the site stays readable.
+ * it can be read. So whatever three colours are chosen, the site stays readable.
  *
  * The admin portal keeps an identical copy of this file to preview a theme before saving it.
  */
 
 export interface ThemeColors {
-  /** Header, links and buttons, as #rrggbb. */
+  /** The header, as #rrggbb. */
   main: string
+  /** Links and buttons, as #rrggbb. */
+  accent: string
   /** The page behind the text, as #rrggbb. */
   background: string
 }
@@ -76,16 +78,21 @@ export function backgroundProblem(background: string): string | null {
     : 'Text would be hard to read on that background. Choose a lighter or a darker one.'
 }
 
-/** Two usable colours, or null if either is not a plain colour or the background cannot carry text. */
+/**
+ * Usable colours, or null if one is not a plain colour or the background cannot carry text. The accent is
+ * optional, because colours saved when there were two (here, and by the API) had links in the main colour.
+ */
 export function toColors(value: unknown): ThemeColors | null {
   if (typeof value !== 'object' || value === null) return null
   const main = toHex((value as Record<string, unknown>).main)
   const background = toHex((value as Record<string, unknown>).background)
   if (!main || !background || backgroundProblem(background)) return null
-  return { main, background }
+  const rawAccent = (value as Record<string, unknown>).accent
+  const accent = rawAccent === undefined || rawAccent === null ? main : toHex(rawAccent)
+  return accent ? { main, accent, background } : null
 }
 
-/** Every colour the stylesheet uses, by custom-property name, worked out from the two chosen colours. */
+/** Every colour the stylesheet uses, by custom-property name, worked out from the three chosen colours. */
 export function paletteFrom(colors: ThemeColors): Record<string, string> {
   const bg = colors.background
   const dark = contrast(bg, LIGHT_TEXT) > contrast(bg, DARK_TEXT)
@@ -99,10 +106,10 @@ export function paletteFrom(colors: ThemeColors): Record<string, string> {
   const surfaces = [bg, bgRaised, bgSubtle]
 
   // The accent is also read on top of its own pale tint (an active button), so that tint is a surface too.
-  let accent = colors.main
+  let accent = colors.accent
   let accentSoft = mix(bg, accent, 0.1)
   for (let step = 0; step <= 20; step++) {
-    accent = mix(colors.main, extreme, step / 20)
+    accent = mix(colors.accent, extreme, step / 20)
     accentSoft = mix(bg, accent, 0.1)
     if ([...surfaces, accentSoft].every((surface) => contrast(accent, surface) >= MIN_CONTRAST)) break
   }

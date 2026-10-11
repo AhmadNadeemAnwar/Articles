@@ -25,8 +25,8 @@ export interface Category {
 
 export interface Site {
   theme: string
-  /** The owner's own two colours, sent only when the theme is "custom". */
-  colors?: { main: string; background: string } | null
+  /** The owner's own three colours, sent only when the theme is "custom". */
+  colors?: { main: string; accent?: string; background: string } | null
   categories: Category[]
   /** False until the site can send email; the subscribe form is hidden until then. */
   subscribeEnabled: boolean

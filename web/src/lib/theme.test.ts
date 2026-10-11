@@ -31,8 +31,8 @@ function fakeRoot() {
   }
 }
 
-const PLUM = { main: '#7a1f5c', background: '#fff8f0' }
-const NIGHT = { main: '#58c79b', background: '#101418' }
+const PLUM = { main: '#7a1f5c', accent: '#7a1f5c', background: '#fff8f0' }
+const NIGHT = { main: '#58c79b', accent: '#58c79b', background: '#101418' }
 
 describe('toTheme', () => {
   it('accepts the ready-made themes', () => {
@@ -46,7 +46,7 @@ describe('toTheme', () => {
 })
 
 describe('toLook', () => {
-  it('keeps a custom theme with two usable colours', () => {
+  it('keeps a custom theme with usable colours', () => {
     expect(toLook('custom', { main: '#7A1F5C', background: '#fff8f0' })).toEqual({ theme: 'custom', colors: PLUM })
   })
 
@@ -255,7 +255,7 @@ describe('pickerColors', () => {
     applySiteLook('seagreen', null, fakeRoot(), green)
 
     expect(pickerColors(custom)).toEqual(PLUM)
-    expect(pickerColors(green)).toEqual({ main: '#17694a', background: '#ffffff' })
-    expect(pickerColors(fakeStorage())).toEqual({ main: '#185fa5', background: '#f2f2f1' })
+    expect(pickerColors(green)).toEqual({ main: '#17694a', accent: '#17694a', background: '#ffffff' })
+    expect(pickerColors(fakeStorage())).toEqual({ main: '#185fa5', accent: '#185fa5', background: '#f2f2f1' })
   })
 })

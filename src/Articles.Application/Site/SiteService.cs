@@ -13,20 +13,22 @@ public sealed record CategoryWithCountDto(Guid Id, string Name, string Slug, int
 
 /// <summary>What the public site needs before it draws anything: how it should look and how posts are shelved.</summary>
 /// <param name="SubscribeEnabled">Whether the site can send email yet; the subscribe form is hidden until it can.</param>
-/// <param name="Colors">The owner's own two colours. Present only when the theme is "custom".</param>
+/// <param name="Colors">The owner's own three colours. Present only when the theme is "custom".</param>
 public sealed record SiteDto(string Theme, IReadOnlyList<CategoryWithCountDto> Categories, bool SubscribeEnabled = false, ThemeColorsDto? Colors = null);
 
-/// <summary>The two colours a custom theme is made from. Every other colour on the site is worked out from these.</summary>
-/// <param name="Main">The header, links and buttons, as #rrggbb.</param>
+/// <summary>The three colours a custom theme is made from. Every other colour on the site is worked out from these.</summary>
+/// <param name="Main">The header, as #rrggbb.</param>
 /// <param name="Background">The page behind the text, as #rrggbb.</param>
-public sealed record ThemeColorsDto(string Main, string Background);
+/// <param name="Accent">Links and buttons, as #rrggbb. The same as <paramref name="Main"/> for colours saved before there were three.</param>
+public sealed record ThemeColorsDto(string Main, string Background, string Accent);
 
 /// <param name="Colors">The custom colours last saved, or a starting suggestion, so the pickers always have something to show.</param>
 public sealed record SiteSettingsDto(string Theme, IReadOnlyList<string> AvailableThemes, ThemeColorsDto Colors);
 
 /// <param name="Main">Needed only when <paramref name="Theme"/> is "custom".</param>
 /// <param name="Background">Needed only when <paramref name="Theme"/> is "custom".</param>
-public sealed record UpdateSiteSettingsRequest(string Theme, string? Main = null, string? Background = null);
+/// <param name="Accent">Optional; links and buttons take the main colour when it is left out.</param>
+public sealed record UpdateSiteSettingsRequest(string Theme, string? Main = null, string? Background = null, string? Accent = null);
 
 public sealed record SaveCategoryRequest(string Name);
 
@@ -56,7 +58,7 @@ public static class Themes
     public const string Blue = "blue";
     public const string SeaGreen = "seagreen";
 
-    /// <summary>The owner's own two colours, kept in <see cref="ThemeColors.SettingKey"/>.</summary>
+    /// <summary>The owner's own colours, kept in <see cref="ThemeColors.SettingKey"/>.</summary>
     public const string Custom = "custom";
 
     public static readonly IReadOnlyList<string> All = [Blue, SeaGreen, Custom];
@@ -73,7 +75,7 @@ public static class Themes
 }
 
 /// <summary>
-/// The two colours of a custom theme. They are only ever stored and sent as plain #rrggbb, so nothing
+/// The colours of a custom theme. They are only ever stored and sent as plain #rrggbb, so nothing
 /// else can ride along into a reader's page, and a background is refused when no text could be read on it.
 /// </summary>
 public static partial class ThemeColors
@@ -84,7 +86,7 @@ public static partial class ThemeColors
     public const double MinimumTextContrast = 7;
 
     /// <summary>What the pickers start from before the owner has saved colours of their own.</summary>
-    public static readonly ThemeColorsDto Suggested = new("#17694a", "#ffffff");
+    public static readonly ThemeColorsDto Suggested = new("#17694a", "#ffffff", "#17694a");
 
     // The two body-text colours the public site chooses between; the same pair is in its palette code.
     private const string DarkText = "#1c1e21";
@@ -93,9 +95,11 @@ public static partial class ThemeColors
     [System.Text.RegularExpressions.GeneratedRegex("^#[0-9a-f]{6}$")]
     private static partial System.Text.RegularExpressions.Regex Hex();
 
-    public static ThemeColorsDto Normalise(string? main, string? background)
+    public static ThemeColorsDto Normalise(string? main, string? background, string? accent = null)
     {
-        var colors = new ThemeColorsDto(Clean(main, "main colour"), Clean(background, "background colour"));
+        var header = Clean(main, "header colour");
+        var colors = new ThemeColorsDto(header, Clean(background, "background colour"),
+            string.IsNullOrWhiteSpace(accent) ? header : Clean(accent, "links and buttons colour"));
 
         if (BestTextContrast(colors.Background) < MinimumTextContrast)
             throw new DomainException("Text would be hard to read on that background. Choose a lighter or a darker one.");
@@ -107,11 +111,12 @@ public static partial class ThemeColors
     public static ThemeColorsDto? Read(string? stored)
     {
         var parts = (stored ?? string.Empty).Split(',');
-        if (parts.Length != 2 || !Hex().IsMatch(parts[0]) || !Hex().IsMatch(parts[1])) return null;
-        return BestTextContrast(parts[1]) < MinimumTextContrast ? null : new ThemeColorsDto(parts[0], parts[1]);
+        // Two parts were stored before links and buttons had a colour of their own; they took the main colour.
+        if (parts.Length is not (2 or 3) || parts.Any(part => !Hex().IsMatch(part))) return null;
+        return BestTextContrast(parts[1]) < MinimumTextContrast ? null : new ThemeColorsDto(parts[0], parts[1], parts.Length == 3 ? parts[2] : parts[0]);
     }
 
-    public static string Store(ThemeColorsDto colors) => $"{colors.Main},{colors.Background}";
+    public static string Store(ThemeColorsDto colors) => $"{colors.Main},{colors.Background},{colors.Accent}";
 
     private static string Clean(string? value, string name)
     {
@@ -146,6 +151,13 @@ public sealed class SiteService : ISiteService
 {
     /// <summary>Categories are tabs across the home page; past a dozen they stop being a way to browse.</summary>
     public const int MaxCategories = 12;
+
+    /// <summary>
+    /// First parts of a public address that already belong to a page of the site. A category's address is the first
+    /// part of its posts' addresses (/life/a-post/k3x9p), so a category may not take one. Keep in step with the site's list.
+    /// </summary>
+    public static readonly IReadOnlyList<string> ReservedAddresses =
+        ["read", "p", "media", "assets", "tag", "search", "privacy", "subscribe", "unsubscribe", "api", "rss", "sitemap", "latest", "admin"];
 
     private readonly ISiteRepository _site;
     private readonly IUnitOfWork _unitOfWork;
@@ -184,7 +196,7 @@ public sealed class SiteService : ISiteService
         var (current, stored) = await CurrentLookAsync(ct);
 
         // Colours matter only to the custom theme; choosing a ready-made one leaves the saved colours for next time.
-        var colors = theme == Themes.Custom ? ThemeColors.Normalise(request.Main, request.Background) : stored;
+        var colors = theme == Themes.Custom ? ThemeColors.Normalise(request.Main, request.Background, request.Accent) : stored;
 
         if (theme != current || colors != stored)
         {
@@ -198,7 +210,7 @@ public sealed class SiteService : ISiteService
     }
 
     private static string Describe(string theme, ThemeColorsDto? colors) =>
-        theme == Themes.Custom && colors is not null ? $"custom ({colors.Main} on {colors.Background})" : theme;
+        theme == Themes.Custom && colors is not null ? $"custom (header {colors.Main}, links {colors.Accent}, page {colors.Background})" : theme;
 
     public async Task<IReadOnlyList<CategoryWithCountDto>> GetCategoriesAsync(CancellationToken ct = default) =>
         (await _site.GetCategoriesAsync(ct)).Select(row => ToDto(row.Category, row.PublishedPosts)).ToList();
@@ -213,6 +225,7 @@ public sealed class SiteService : ISiteService
 
         var slug = SlugGenerator.Generate(name);
         if (slug.Length == 0) throw new DomainException("A category name needs at least one letter or number.");
+        if (ReservedAddresses.Contains(slug)) throw new DomainException($"\"{name}\" is already the address of a page on the site. Choose another name.");
         // Two names can reduce to the same address ("AI & ML" and "AI ML"); the second gets a short code.
         if (await _site.CategorySlugExistsAsync(slug, ct)) slug = SlugGenerator.WithCode(slug);
 

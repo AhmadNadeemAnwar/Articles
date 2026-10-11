@@ -5,6 +5,8 @@ const RESET_DELAY_MS = 2000
 interface Props {
   url: string
   label?: string
+  /** The address as shown to readers (Articles/<category>/<post>), written beside the button. The copied link is still `url`. */
+  shown?: string
   /** Icon-only round button, sized to sit next to a heading rather than in a button row. */
   compact?: boolean
 }
@@ -16,7 +18,7 @@ interface Props {
  * that happens on plain http origins and some older or embedded browsers, and a share button
  * that silently does nothing there is worse than not having one.
  */
-export function CopyLinkButton({ url, label = 'Copy link', compact = false }: Props) {
+export function CopyLinkButton({ url, label = 'Copy link', shown, compact = false }: Props) {
   const [copied, setCopied] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -35,25 +37,33 @@ export function CopyLinkButton({ url, label = 'Copy link', compact = false }: Pr
 
   const statusText = copied ? 'Link copied to clipboard' : ''
 
+  const address = shown ? <span className="link-address" title={shown}>{shown}</span> : null
+
   if (compact) {
     return (
-      <button
-        className={`btn btn--icon${copied ? ' btn--active' : ''}`}
-        onClick={copy}
-        aria-label={copied ? 'Link copied' : `${label} to this post`}
-        title={copied ? 'Link copied' : label}
-      >
-        <LinkIcon />
-        <span className="sr-only" role="status" aria-live="polite">{statusText}</span>
-      </button>
+      <span className="link-copy link-copy--compact">
+        {address}
+        <button
+          className={`btn btn--icon${copied ? ' btn--active' : ''}`}
+          onClick={copy}
+          aria-label={copied ? 'Link copied' : `${label} to this post`}
+          title={copied ? 'Link copied' : label}
+        >
+          <LinkIcon />
+          <span className="sr-only" role="status" aria-live="polite">{statusText}</span>
+        </button>
+      </span>
     )
   }
 
   return (
-    <button className="btn" onClick={copy} aria-label={`${label} to this post`}>
-      {copied ? 'Link copied' : label}
-      <span className="sr-only" role="status" aria-live="polite">{statusText}</span>
-    </button>
+    <span className="link-copy">
+      {address}
+      <button className="btn" onClick={copy} aria-label={`${label} to this post`}>
+        {copied ? 'Link copied' : label}
+        <span className="sr-only" role="status" aria-live="polite">{statusText}</span>
+      </button>
+    </span>
   )
 }
 

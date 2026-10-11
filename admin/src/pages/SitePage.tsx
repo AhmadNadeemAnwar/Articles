@@ -21,13 +21,13 @@ export function describeTheme(theme: string) {
   return themeLabels[theme] ?? { name: theme, note: '', swatches: [] }
 }
 
-/** The owner's own two colours are a theme too, but are set with pickers rather than chosen from the list. */
+/** The owner's own three colours are a theme too, but are set with pickers rather than chosen from the list. */
 export const CUSTOM_THEME = 'custom'
 
 /** What the Save button for custom colours should do, given what is picked and what the site wears now. */
 export function customColoursState(picked: ThemeColors, current: { theme: string; colors: ThemeColors }) {
   const problem = backgroundProblem(picked.background)
-  const inUse = current.theme === CUSTOM_THEME && current.colors.main === picked.main && current.colors.background === picked.background
+  const inUse = current.theme === CUSTOM_THEME && current.colors.main === picked.main && current.colors.accent === picked.accent && current.colors.background === picked.background
   return { problem, inUse, canSave: problem === null && !inUse }
 }
 
@@ -97,7 +97,7 @@ function ThemePanel() {
       )}
 
       {settings.data?.availableThemes.includes(CUSTOM_THEME) && (
-        <CustomColours key={`${settings.data.theme}-${settings.data.colors.main}-${settings.data.colors.background}`}
+        <CustomColours key={`${settings.data.theme}-${settings.data.colors.main}-${settings.data.colors.accent}-${settings.data.colors.background}`}
           current={settings.data} saving={saving !== null} onSave={(colors) => void choose(CUSTOM_THEME, colors)} />
       )}
     </section>
@@ -127,15 +127,19 @@ function CustomColours({ current, saving, onSave }: {
     <div className={`custom-theme${inUse ? ' custom-theme--active' : ''}`}>
       <h3>Your own colours {inUse && <span className="badge badge--good">In use</span>}</h3>
       <p className="muted">
-        Pick two colours. The text, borders and button shades are worked out from them so the site always stays readable.
+        Pick three colours. The text, borders and button shades are worked out from them so the site always stays readable.
         Readers can also choose colours for themselves with the palette button on the site; that only changes their own device.
       </p>
 
       <div className="custom-theme__body">
         <div className="custom-theme__pickers">
           <label>
-            <span>Main colour<small>Header, links and buttons</small></span>
+            <span>Header<small>The bar across the top</small></span>
             <input type="color" value={picked.main} onChange={(e) => pick('main', e.target.value)} />
+          </label>
+          <label>
+            <span>Links and buttons<small>Whatever readers can click</small></span>
+            <input type="color" value={picked.accent} onChange={(e) => pick('accent', e.target.value)} />
           </label>
           <label>
             <span>Background<small>The page behind the text</small></span>

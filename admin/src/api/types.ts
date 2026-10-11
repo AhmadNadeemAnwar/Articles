@@ -177,7 +177,7 @@ export interface SiteSettings {
   theme: string
   availableThemes: string[]
   /** The custom colours last saved, or a starting suggestion. In use only when `theme` is "custom". */
-  colors: { main: string; background: string }
+  colors: { main: string; accent: string; background: string }
 }
 
 export interface AdminComment {

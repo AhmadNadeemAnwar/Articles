@@ -62,6 +62,25 @@ public class SiteServiceTests : IDisposable
 
     private Task<CategoryWithCountDto> AddAsync(string name) => _site.CreateCategoryAsync(new SaveCategoryRequest(name), Owner);
 
+    [Theory]
+    [InlineData("Search")]
+    [InlineData("Privacy")]
+    [InlineData("tag")]
+    [InlineData("Read")]
+    public async Task A_category_cannot_take_the_address_of_a_page_of_the_site(string name)
+    {
+        var failure = await Record.ExceptionAsync(() => AddAsync(name));
+
+        failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("address of a page");
+        (await _site.GetCategoriesAsync()).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_category_that_only_contains_such_a_word_is_fine()
+    {
+        (await AddAsync("Search Engines")).Slug.Should().Be("search-engines");
+    }
+
     private async Task<PostDetailDto> PostAsync(Guid authorId, string title, Guid? categoryId, bool publish = true)
     {
         var draft = await _posts.CreateDraftAsync(new CreatePostRequest(title, null, TestDatabase.Document($"Body of {title}."), null, [], categoryId), authorId);
@@ -87,11 +106,57 @@ public class SiteServiceTests : IDisposable
         var saved = await _site.UpdateSettingsAsync(new UpdateSiteSettingsRequest("custom", " #7A1F5C ", "#FFF8F0"), Owner);
 
         saved.Theme.Should().Be("custom");
-        saved.Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0"));
+        saved.Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0", "#7a1f5c"));
         var site = await _site.GetPublicAsync();
         site.Theme.Should().Be("custom");
-        site.Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0"));
-        (await HistoryAsync()).Should().ContainSingle().Which.Should().Be($"{Activity.ChangedTheme}: blue to custom (#7a1f5c on #fff8f0)");
+        site.Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0", "#7a1f5c"));
+        (await HistoryAsync()).Should().ContainSingle().Which.Should().Be($"{Activity.ChangedTheme}: blue to custom (header #7a1f5c, links #7a1f5c, page #fff8f0)");
+    }
+
+    [Fact]
+    public async Task Links_and_buttons_can_have_a_colour_of_their_own()
+    {
+        var saved = await _site.UpdateSettingsAsync(new UpdateSiteSettingsRequest("custom", "#7a1f5c", "#fff8f0", " #B35A00 "), Owner);
+
+        saved.Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0", "#b35a00"));
+        (await _site.GetPublicAsync()).Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0", "#b35a00"));
+        (await HistoryAsync()).Should().ContainSingle().Which.Should().Contain("links #b35a00");
+    }
+
+    [Fact]
+    public async Task Changing_only_the_links_colour_is_a_change()
+    {
+        await _site.UpdateSettingsAsync(new UpdateSiteSettingsRequest("custom", "#7a1f5c", "#fff8f0"), Owner);
+
+        await _site.UpdateSettingsAsync(new UpdateSiteSettingsRequest("custom", "#7a1f5c", "#fff8f0", "#224488"), Owner);
+
+        (await _site.GetPublicAsync()).Colors!.Accent.Should().Be("#224488");
+        (await HistoryAsync()).Should().HaveCount(2);
+    }
+
+    [Theory]
+    [InlineData("#7a1f5c,#fff8f0", "#7a1f5c")]
+    [InlineData("#7a1f5c,#fff8f0,#224488", "#224488")]
+    public async Task Colours_saved_before_there_were_three_still_work_and_links_follow_the_header(string stored, string accent)
+    {
+        await _repository.SetSettingAsync(Themes.SettingKey, Themes.Custom);
+        await _repository.SetSettingAsync(ThemeColors.SettingKey, stored);
+        await _fixture.Db.SaveChangesAsync();
+
+        var site = await _site.GetPublicAsync();
+
+        site.Theme.Should().Be(Themes.Custom);
+        site.Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0", accent));
+    }
+
+    [Theory]
+    [InlineData("red")]
+    [InlineData("#fff;}body{display:none")]
+    public async Task A_links_colour_that_is_not_a_plain_colour_is_refused(string accent)
+    {
+        var failure = await Record.ExceptionAsync(() => _site.UpdateSettingsAsync(new UpdateSiteSettingsRequest("custom", "#17694a", "#ffffff", accent), Owner));
+
+        failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("colour like #17694a");
     }
 
     [Fact]
@@ -115,7 +180,7 @@ public class SiteServiceTests : IDisposable
         await _site.UpdateSettingsAsync(new UpdateSiteSettingsRequest("custom", "#7a1f5c", "#fff8f0"), Owner);
         await _site.UpdateSettingsAsync(new UpdateSiteSettingsRequest("blue"), Owner);
 
-        (await _site.GetSettingsAsync()).Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0"));
+        (await _site.GetSettingsAsync()).Colors.Should().Be(new ThemeColorsDto("#7a1f5c", "#fff8f0", "#7a1f5c"));
     }
 
     [Fact]
@@ -129,7 +194,7 @@ public class SiteServiceTests : IDisposable
         await _site.UpdateSettingsAsync(new UpdateSiteSettingsRequest("custom", "#224488", "#fff8f0"), Owner);
 
         (await _site.GetPublicAsync()).Colors!.Main.Should().Be("#224488");
-        (await HistoryAsync()).Should().Contain($"{Activity.ChangedTheme}: custom (#7a1f5c on #fff8f0) to custom (#224488 on #fff8f0)");
+        (await HistoryAsync()).Should().Contain($"{Activity.ChangedTheme}: custom (header #7a1f5c, links #7a1f5c, page #fff8f0) to custom (header #224488, links #224488, page #fff8f0)");
         _fixture.Db.SiteSettings.Should().HaveCount(2, "one setting for the theme and one for its colours, replaced each time");
     }
 
@@ -180,7 +245,8 @@ public class SiteServiceTests : IDisposable
     [InlineData("#7a1f5c")]
     [InlineData("#7a1f5c,#808080")]
     [InlineData("#7a1f5c,red")]
-    [InlineData("#7a1f5c,#fff8f0,#000000")]
+    [InlineData("#7a1f5c,#fff8f0,#000000,#000000")]
+    [InlineData("#7a1f5c,#fff8f0,red")]
     public async Task A_custom_theme_whose_stored_colours_cannot_be_used_falls_back_to_the_default(string stored)
     {
         await _repository.SetSettingAsync(Themes.SettingKey, Themes.Custom);

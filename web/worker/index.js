@@ -3,7 +3,8 @@
 // link previews (LinkedIn, WhatsApp, Slack), feed readers and some search crawlers. This fills
 // that gap, and nothing else:
 //
-//   /read/<post>   the normal page, with the post's title, description and picture added to its head.
+//   /<category>/<name>/<code>, /<name>/<code>, /read/<post>
+//                  a post: the normal page, with the post's title, description and picture added to its head.
 //                  A post that does not exist, or has been taken down, answers "not found".
 //   /p/<post>      where posts used to live: sent on to /read/<post>
 //   /media/<id>    a picture from a post, fetched from the API once and then kept by Cloudflare,
