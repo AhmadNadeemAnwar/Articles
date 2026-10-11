@@ -2,7 +2,7 @@ import type { GrammarMatch } from '../posts/grammar'
 import type {
   ActivityEntry, AdminComment, AdminPost, AdminTag, Category, Collection, NotifyResult, Subscriber, SubscribersSummary, Frontmatter, Paged, PortfolioEntry, PortfolioStatus,
   PortfolioSummary, PostDraft, PostInput, PostRevision, PostRevisionDetail, PostStatus, PostTag, Profile, ProfileInput,
-  GeneratedImage, GenerationStatus, Session, SiteSettings, Stats, StoredImage,
+  GeneratedImage, GenerationStatus, ThemeSuggestion, Session, SiteSettings, Stats, StoredImage,
 } from './types'
 
 // Empty in development (Vite proxies /api); the production build bakes in the API's absolute URL.
@@ -140,6 +140,9 @@ export const api = {
   settings: () => request<SiteSettings>('GET', '/api/v1/admin/settings'),
   updateSettings: (theme: string, colors?: { main: string; accent: string; background: string }) =>
     request<SiteSettings>('PUT', '/api/v1/admin/settings', { theme, ...colors }),
+
+  themeAiStatus: () => request<GenerationStatus>('GET', '/api/v1/admin/settings/ai-colours'),
+  askAiForColours: () => request<ThemeSuggestion>('POST', '/api/v1/admin/settings/ai-colours'),
 
   categories: () => request<Category[]>('GET', '/api/v1/admin/categories'),
   createCategory: (name: string) => request<Category>('POST', '/api/v1/admin/categories', { name }),

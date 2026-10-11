@@ -332,16 +332,10 @@ input:focus, textarea:focus, select:focus {
 
 /* ---- Reading view --------------------------------------------------------- */
 
-.article__title { font-family: var(--font-read); font-size: clamp(1.75rem, 1.1rem + 3vw, 2.4rem); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+.article__title { font-family: var(--font-read); font-size: clamp(1.75rem, 1.1rem + 3vw, 2.4rem); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 0.5rem; flex: 1; }
 
-/* The address shown beside the copy-link button: Articles/<category>/<post>. Long ones are cut short, never wrapped. */
-.link-copy { display: inline-flex; align-items: center; gap: 0.6rem; min-width: 0; }
-.link-address { color: var(--text-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.link-copy--compact .link-address { max-width: 16rem; }
-/* Under the title, the address has the whole line: written out in full, wrapping rather than cut short. */
-.article__link { margin: 0 0 1rem; }
-.article__link .link-address { max-width: none; white-space: normal; overflow: visible; }
-@media (max-width: 640px) { .link-copy--compact:not(.article__link *) .link-address { display: none; } .actionbar .link-address { max-width: 9rem; } }
+.article__title-row { display: flex; align-items: flex-start; gap: 0.75rem; }
+.article__title-row .btn--icon { margin-top: 0.35rem; }
 .article__subtitle { font-family: var(--font-read); font-size: 1.25rem; color: var(--text-muted); margin: 0 0 1.5rem; font-weight: 400; }
 .article__byline { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1.25rem; }
 .article__cover { width: 100%; border-radius: var(--radius); margin-bottom: 1.5rem; }

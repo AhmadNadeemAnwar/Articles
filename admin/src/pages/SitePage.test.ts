@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { publicPostUrl } from '../components/ui'
-import { categoryNameProblem, customColoursState, describeTheme } from './SitePage'
+import { aiProposalNote, categoryNameProblem, customColoursState, describeTheme } from './SitePage'
 
 describe('categoryNameProblem', () => {
   const taken = ['Life and lessons', 'Technology and AI']
@@ -82,5 +82,20 @@ describe('publicPostUrl', () => {
 
   it('has no address for a post that was never published', () => {
     expect(publicPostUrl(null)).toBeNull()
+  })
+})
+
+describe('aiProposalNote', () => {
+  it('names the theme, says the colours are not kept yet, and how many goes are left', () => {
+    expect(aiProposalNote('Dusk Orchard', 3, 20)).toBe('The AI calls this “Dusk Orchard”. Press “Use these colours” to keep them, or try again. 17 goes left today.')
+  })
+
+  it('says "go" for the last one and never counts below none', () => {
+    expect(aiProposalNote('Sea Glass', 19, 20)).toContain('1 go left today.')
+    expect(aiProposalNote('Sea Glass', 25, 20)).toContain('0 goes left today.')
+  })
+
+  it('copes with a theme that has no name', () => {
+    expect(aiProposalNote('  ', 1, 20)).toMatch(/^The AI has picked colours\. Press/)
   })
 })

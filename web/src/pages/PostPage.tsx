@@ -8,7 +8,7 @@ import { Avatar, EmptyState, Spinner, TagPill, formatDate } from '../components/
 import { useAsync } from '../hooks/useAsync'
 import { useTitle } from '../hooks/useTitle'
 import { safeImageSrc } from '../lib/safeUrl'
-import { postDisplayPath, postPath, slugFromParams } from '../lib/site'
+import { postPath, slugFromParams } from '../lib/site'
 
 export function PostPage() {
   const slug = slugFromParams(useParams())
@@ -48,7 +48,6 @@ export function PostPage() {
   }
 
   const link = `${window.location.origin}${postPath(post.slug, post.category?.slug)}`
-  const shown = postDisplayPath(post.title, post.category?.name)
   const cover = safeImageSrc(post.coverImageUrl)
 
   const hasRelated = Boolean(related.data && related.data.length > 0)
@@ -59,9 +58,9 @@ export function PostPage() {
         {post.category && (
           <Link className="article__category" to={`/?category=${encodeURIComponent(post.category.slug)}`}>{post.category.name}</Link>
         )}
-        <h1 className="article__title">{post.title}</h1>
-        <div className="article__link">
-          <CopyLinkButton url={link} shown={shown} />
+        <div className="article__title-row">
+          <h1 className="article__title">{post.title}</h1>
+          <CopyLinkButton url={link} compact />
         </div>
         {post.subtitle && <p className="article__subtitle">{post.subtitle}</p>}
 

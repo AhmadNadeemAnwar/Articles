@@ -45,6 +45,7 @@ public static class Activity
     public const string NotifiedSubscribers = "Emailed subscribers about a post";
     public const string RemovedSubscriber = "Removed a subscriber";
     public const string GeneratedImage = "Generated a picture";
+    public const string AskedAiForColours = "Asked the AI for theme colours";
 
     public static ActivityDto ToDto(this ActivityEntry entry) => new(entry.Id, entry.At, entry.Actor, entry.Action, entry.Subject);
 }

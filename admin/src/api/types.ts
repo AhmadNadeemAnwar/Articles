@@ -228,6 +228,14 @@ export interface PortfolioEntry {
   body: string
 }
 
+/** What "Amaze with AI" proposes for the custom theme. Nothing is saved until the owner keeps it. */
+export interface ThemeSuggestion {
+  colors: { main: string; accent: string; background: string }
+  name: string
+  usedToday: number
+  dailyLimit: number
+}
+
 /** Whether picture generation is set up, and how much of today's allowance is used. */
 export interface GenerationStatus {
   enabled: boolean

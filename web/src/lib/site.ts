@@ -57,8 +57,3 @@ export function slugFromParams(params: Record<string, string | undefined>): stri
   if (params.first && params.second) return CODE.test(params.second) ? `${params.first}-${params.second}` : params.second
   return ''
 }
-
-/** The address as it is written for readers: Articles/<category>/<post name>, or Articles/<post name> with no category. */
-export function postDisplayPath(title: string, category?: string | null): string {
-  return [SITE_NAME, category, title].filter((part): part is string => Boolean(part && part.trim())).join('/')
-}

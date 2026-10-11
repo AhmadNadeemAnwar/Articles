@@ -61,6 +61,7 @@ public static class DependencyInjection
 
         services.Configure<ImageGenerationOptions>(configuration.GetSection(ImageGenerationOptions.SectionName));
         services.AddHttpClient<IImageGenerator, CloudflareImageGenerator>();
+        services.AddHttpClient<Articles.Application.Site.IThemeAi, CloudflareThemeAi>();
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();

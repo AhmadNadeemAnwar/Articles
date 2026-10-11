@@ -31,6 +31,13 @@ export function customColoursState(picked: ThemeColors, current: { theme: string
   return { problem, inUse, canSave: problem === null && !inUse }
 }
 
+/** What is said after the AI has proposed colours. They are only in the pickers; the owner still has to keep them. */
+export function aiProposalNote(name: string, usedToday: number, dailyLimit: number): string {
+  const left = Math.max(0, dailyLimit - usedToday)
+  const title = name.trim() === '' ? 'The AI has picked colours.' : `The AI calls this “${name.trim()}”.`
+  return `${title} Press “Use these colours” to keep them, or try again. ${left} ${left === 1 ? 'go' : 'goes'} left today.`
+}
+
 /** Why a category name cannot be used, or null if it can. `others` are the names already taken by other categories. */
 export function categoryNameProblem(name: string, others: string[]): string | null {
   const clean = name.trim()
@@ -115,12 +122,30 @@ function CustomColours({ current, saving, onSave }: {
   saving: boolean
   onSave: (colors: ThemeColors) => void
 }) {
+  const notify = useToast()
   const [picked, setPicked] = useState<ThemeColors>(current.colors)
+  const ai = useAsync(() => api.themeAiStatus().catch(() => null), [])
+  const [asking, setAsking] = useState(false)
+  const [aiNote, setAiNote] = useState<string | null>(null)
   const { problem, inUse, canSave } = customColoursState(picked, current)
 
   function pick(part: keyof ThemeColors, value: string) {
     const hex = toHex(value)
     if (hex) setPicked({ ...picked, [part]: hex })
+  }
+
+  async function amaze() {
+    setAsking(true)
+    try {
+      const result = await api.askAiForColours()
+      setPicked(result.colors)
+      setAiNote(aiProposalNote(result.name, result.usedToday, result.dailyLimit))
+      ai.reload()
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'The AI could not choose colours.', 'error')
+    } finally {
+      setAsking(false)
+    }
   }
 
   return (
@@ -145,6 +170,12 @@ function CustomColours({ current, saving, onSave }: {
             <span>Background<small>The page behind the text</small></span>
             <input type="color" value={picked.background} onChange={(e) => pick('background', e.target.value)} />
           </label>
+          {ai.data?.enabled && (
+            <button type="button" className="btn btn--ai" disabled={asking || saving || ai.data.usedToday >= ai.data.dailyLimit} onClick={() => void amaze()}>
+              {asking ? 'The AI is choosing…' : 'Amaze with AI'}
+            </button>
+          )}
+          {aiNote && <p className="custom-theme__note" role="status">{aiNote}</p>}
           {problem && <p className="custom-theme__problem" role="alert">{problem}</p>}
           <button type="button" className="btn btn--primary" disabled={!canSave || saving} onClick={() => onSave(picked)}>
             {saving ? 'Saving…' : inUse ? 'These colours are in use' : 'Use these colours'}

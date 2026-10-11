@@ -20,6 +20,9 @@ public sealed class ImageGenerationOptions
 
     public string Model { get; set; } = "@cf/black-forest-labs/flux-1-schnell";
 
+    /// <summary>The text model behind "Amaze with AI" (theme colours). Same account, token and free allowance.</summary>
+    public string TextModel { get; set; } = "@cf/meta/llama-3.1-8b-instruct";
+
     public string BaseUrl { get; set; } = "https://api.cloudflare.com";
 
     /// <summary>Diffusion steps. The model's maximum is 8; more steps cost more of the free allowance.</summary>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { PostSummary } from '../api/types'
 import { mergePosts } from '../hooks/usePagedPosts'
-import { normalise, pageTitle, postDisplayPath, postPath, slugFromParams } from './site'
+import { normalise, pageTitle, postPath, slugFromParams } from './site'
 
 describe('pageTitle', () => {
   it('puts the page first and the site second', () => {
@@ -106,16 +106,5 @@ describe('slugFromParams', () => {
 
   it('is empty when there is nothing to go on', () => {
     expect(slugFromParams({})).toBe('')
-  })
-})
-
-describe('postDisplayPath', () => {
-  it('reads Articles/<category>/<post name>', () => {
-    expect(postDisplayPath('Today for Tomorrow', 'Life and Lessons')).toBe('Articles/Life and Lessons/Today for Tomorrow')
-  })
-
-  it('is Articles/<post name> when the post has no category', () => {
-    expect(postDisplayPath('Today for Tomorrow')).toBe('Articles/Today for Tomorrow')
-    expect(postDisplayPath('Today for Tomorrow', null)).toBe('Articles/Today for Tomorrow')
   })
 })
