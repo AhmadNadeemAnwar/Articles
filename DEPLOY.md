@@ -60,9 +60,9 @@ public site. That adds "About the author" to the header and footer and a contact
 
 ## 2. API: Render
 
-1. Sign up at render.com with GitHub. **New + > Web Service**, pick the `inkwell` repo.
+1. Sign up at render.com with GitHub. **New + > Web Service**, pick the `Articles` repo.
 2. Settings:
-   - **Name:** `inkwell-api` (Render may append a suffix, e.g. `inkwell-zpbc`; use whatever URL it shows you)
+   - **Name:** `articles-api` (Render may append a suffix, e.g. `articles-api-jkvr`; use whatever URL it shows you)
    - **Language:** Docker (it finds `Dockerfile` at the repo root)
    - **Instance Type:** **Free**
    - **Health Check Path** (under Advanced): `/health`

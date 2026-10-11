@@ -128,7 +128,7 @@ npx.cmd wrangler deploy
 `wrangler deploy` creates `admin.ahmadnadeem.dev` and its DNS record. Open it and sign in with your
 email and the current 6-digit code.
 
-> If your API URL isn't `https://inkwell-zpbc.onrender.com`, change it in **both**
+> If your API URL isn't `https://articles-api-jkvr.onrender.com`, change it in **both**
 > `admin/.env.production` and `admin/public/_headers` before building.
 
 ---

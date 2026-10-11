@@ -50,3 +50,34 @@ describe('the old address is gone', () => {
     expect(existsSync(new URL('./legacy-redirect', import.meta.url))).toBe(false)
   })
 })
+
+describe('the API address', () => {
+  const find = (text, pattern) => text.match(pattern)?.[1]
+  const adminRead = (path) => readFileSync(new URL(`../admin/${path}`, import.meta.url), 'utf8')
+
+  it('is one address everywhere, so the sites and their security headers agree', () => {
+    const addresses = {
+      'web worker API_BASE': find(read('./wrangler.jsonc'), /"API_BASE":\s*"([^"]+)"/),
+      'web VITE_API_BASE': find(read('./.env.production'), /^VITE_API_BASE=(\S+)$/m),
+      'admin VITE_API_BASE': find(adminRead('.env.production'), /^VITE_API_BASE=(\S+)$/m),
+      'web headers connect-src': find(read('./public/_headers'), /connect-src 'self' (https:\/\/\S+)/),
+      'admin headers connect-src': find(adminRead('public/_headers'), /connect-src 'self' (https:\/\/\S+)/),
+      'admin headers img-src': find(adminRead('public/_headers'), /img-src [^;]*?(https:\/\/[a-z0-9.-]+onrender\.com)/),
+    }
+
+    expect(new Set(Object.values(addresses)).size, JSON.stringify(addresses)).toBe(1)
+    expect(Object.values(addresses)[0]).toMatch(/^https:\/\/articles-api-[a-z0-9]+\.onrender\.com$/)
+  })
+
+  it('does not carry the old service name anywhere in the settings', () => {
+    for (const text of [read('./wrangler.jsonc'), read('./.env.production'), read('./public/_headers'), adminRead('.env.production'), adminRead('public/_headers')]) {
+      expect(text).not.toMatch(/inkwell/i)
+    }
+  })
+
+  it('allows only the Articles site and the admin portal to call the API from a browser', () => {
+    const config = readFileSync(new URL('../src/Inkwell.Api/appsettings.Production.json', import.meta.url), 'utf8')
+
+    expect(JSON.parse(config).Cors.AllowedOrigins).toEqual(['https://articles.ahmadnadeem.dev', 'https://admin.ahmadnadeem.dev'])
+  })
+})
