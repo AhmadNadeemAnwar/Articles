@@ -18,8 +18,26 @@ public static class PostContent
     public const string ImageSection = "imageSection";
     public const string ReferencesSection = "referencesSection";
 
+    /// <summary>
+    /// A text section can carry a "textState", so that the writer's earlier wording is kept beside the AI's improved version:
+    /// "Original" is what the writer wrote, "Improved" is the first improvement, and each later improvement is
+    /// "Improved_" and the time it was made (for example "Improved_2026-10-14T10:30:00Z"). They sit side by side, oldest first.
+    /// Readers see only the newest of them. The older ones stay in the body, but are never shown, searched or counted in
+    /// reading time. A section with no state is ordinary text.
+    /// </summary>
+    public const string TextStateOriginal = "Original";
+    public const string TextStateImproved = "Improved";
+    public const string TextStateImprovedPrefix = "Improved_";
+
+    private static readonly System.Text.RegularExpressions.Regex ImprovedAt =
+        new(@"^Improved_\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,7})?Z$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    /// <summary>"Improved", or "Improved_" and a time: one of the AI's versions rather than the writer's original.</summary>
+    public static bool IsImprovedState(string? state) => state == TextStateImproved || (state is not null && ImprovedAt.IsMatch(state));
+
     public const int MaxLength = 1_000_000;
-    public const int MaxSections = 100;
+    /// <summary>The editor allows 100 sections; each earlier version it keeps is another entry here.</summary>
+    public const int MaxSections = 300;
     public const int MaxReferences = 50;
     public const int MaxCaptionLength = 300;
     public const int MaxReferenceTitleLength = 200;
@@ -68,9 +86,22 @@ public static class PostContent
         if (sections.GetArrayLength() > MaxSections)
             throw new DomainException($"A post can have at most {MaxSections} sections.");
 
+        string? previous = null;
         foreach (var section in sections.EnumerateArray())
         {
-            switch (TypeOf(section))
+            var type = TypeOf(section);
+            var state = type == TextSection ? ValidateTextState(section) : null;
+
+            // The writer's original is only ever kept beside the version that replaced it, oldest first.
+            if (previous == TextStateOriginal && !IsImprovedState(state))
+                throw new DomainException("A kept original text must be followed by the improved text that replaced it.");
+            if (state == TextStateImproved && previous != TextStateOriginal)
+                throw new DomainException("An improved text must come straight after the original it replaced.");
+            if (state is not null && state != TextStateOriginal && state != TextStateImproved && !IsImprovedState(previous) && previous != TextStateOriginal)
+                throw new DomainException("An improved text must come straight after the version it replaced.");
+            previous = state;
+
+            switch (type)
             {
                 case TextSection:
                     break;
@@ -84,6 +115,35 @@ public static class PostContent
                     throw new DomainException("A post can only contain text, image and reference sections.");
             }
         }
+
+        if (previous == TextStateOriginal) throw new DomainException("A kept original text must be followed by the improved text that replaced it.");
+    }
+
+    /// <summary>The text section's state, or null for an ordinary one. Anything but the known states is refused.</summary>
+    private static string? ValidateTextState(JsonElement section)
+    {
+        if (!section.TryGetProperty("textState", out var value) || value.ValueKind == JsonValueKind.Null) return null;
+
+        var state = value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+        return state == TextStateOriginal || IsImprovedState(state)
+            ? state
+            : throw new DomainException("A text section can only be marked Original, Improved, or Improved_ and the time it was made.");
+    }
+
+    /// <summary>The positions of the sections readers do not see: every Original, and every improved text that a newer one has replaced.</summary>
+    public static HashSet<int> HiddenSections(JsonElement sections)
+    {
+        var states = sections.ValueKind == JsonValueKind.Array
+            ? sections.EnumerateArray().Select(s => TypeOf(s) == TextSection ? Text(s, "textState") : null).ToList()
+            : [];
+
+        var hidden = new HashSet<int>();
+        for (var i = 0; i < states.Count; i++)
+        {
+            if (states[i] == TextStateOriginal) hidden.Add(i);
+            else if (IsImprovedState(states[i]) && i + 1 < states.Count && IsImprovedState(states[i + 1])) hidden.Add(i);
+        }
+        return hidden;
     }
 
     private static void ValidateImage(JsonElement section)

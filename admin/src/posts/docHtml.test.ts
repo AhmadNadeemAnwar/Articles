@@ -18,6 +18,13 @@ describe('docToHtml', () => {
     expect(html).toBe('<h2>Title</h2><p>Body</p><blockquote><p>Quoted</p></blockquote><ul><li><p>one</p></li></ul><ol><li><p>first</p></li></ol>')
   })
 
+  it('keeps a numbered list counting from where it started', () => {
+    const list = (start: number) => ({ type: 'orderedList', attrs: { start }, content: [{ type: 'listItem', content: [{ type: 'paragraph', content: [text('x')] }] }] })
+
+    expect(docToHtml(doc(list(3)))).toBe('<ol start="3"><li><p>x</p></li></ol>')
+    expect(docToHtml(doc(list(1)))).toBe('<ol><li><p>x</p></li></ol>')
+  })
+
   it('writes bold, italic, strikethrough, code and a line break', () => {
     expect(docToHtml(doc({ type: 'paragraph', content: [text('a', { type: 'bold' }), text('b', { type: 'italic' }), text('c', { type: 'strike' }), text('d', { type: 'code' }), { type: 'hardBreak' }, text('e')] })))
       .toBe('<p><strong>a</strong><em>b</em><s>c</s><code>d</code><br>e</p>')

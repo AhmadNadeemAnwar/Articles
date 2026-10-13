@@ -11,11 +11,11 @@ interface Props {
   /** Stored ProseMirror JSON, or null for a new post. */
   initialContent: string | null
   onChange: (contentJson: string) => void
-  /** The saved post, or null before it has been saved once. Needed to keep the original when the AI's text is applied. */
-  postId?: string | null
+  /** Told, just before the AI's improved text replaces the section's, what was there and what replaces it (both the editor's JSON). */
+  onImproved?: (previousDoc: string, newDoc: string) => void
 }
 
-export function RichEditor({ initialContent, onChange, postId = null }: Props) {
+export function RichEditor({ initialContent, onChange, onImproved }: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] } }),
@@ -44,7 +44,7 @@ export function RichEditor({ initialContent, onChange, postId = null }: Props) {
       <Toolbar editor={editor} />
       <EditorContent editor={editor} className="prose" />
       <GrammarPanel editor={editor}>
-        <ImprovePanel editor={editor} postId={postId} />
+        <ImprovePanel editor={editor} onImproved={onImproved} />
       </GrammarPanel>
     </>
   )

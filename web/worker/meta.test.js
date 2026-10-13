@@ -137,6 +137,22 @@ describe('postPathFor', () => {
   })
 })
 
+describe('plainText with kept earlier versions', () => {
+  const section = (words, state) => ({ type: 'textSection', ...(state ? { textState: state } : {}), content: [{ type: 'paragraph', content: [{ type: 'text', text: words }] }] })
+  const body = (...sections) => JSON.stringify({ type: 'sections', content: sections })
+
+  it('reads only the newest version of an improved section', () => {
+    const text = plainText(body(section('Intro.'), section('oldwording', 'Original'), section('firstwording', 'Improved'), section('newwording', 'Improved_2026-10-14T10:30:00Z'), section('End.')))
+
+    expect(text).toBe('Intro. newwording End.')
+  })
+
+  it('reads the improved text when there is only one improvement, and a post with no kept versions as before', () => {
+    expect(plainText(body(section('before', 'Original'), section('after', 'Improved')))).toBe('after')
+    expect(plainText(body(section('One.'), section('Two.')))).toBe('One. Two.')
+  })
+})
+
 describe('plainText', () => {
   it('joins the words of every block, keeping blocks apart', () => {
     expect(plainText(post().contentJson)).toBe('First paragraph. Second paragraph.')

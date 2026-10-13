@@ -41,7 +41,10 @@ function block(node: DocNode): string {
     case 'heading': return `<h${node.attrs?.level === 3 ? 3 : 2}>${text()}</h${node.attrs?.level === 3 ? 3 : 2}>`
     case 'blockquote': return `<blockquote>${inner()}</blockquote>`
     case 'bulletList': return `<ul>${inner()}</ul>`
-    case 'orderedList': return `<ol>${inner()}</ol>`
+    case 'orderedList': {
+      const start = Number(node.attrs?.start)
+      return `<ol${Number.isInteger(start) && start > 1 && start < 10000 ? ` start="${start}"` : ''}>${inner()}</ol>`
+    }
     case 'listItem': return `<li>${inner()}</li>`
     case 'codeBlock': return `<pre><code>${(node.content ?? []).map((n) => escape(n.text ?? '')).join('')}</code></pre>`
     case 'horizontalRule': return '<hr>'

@@ -1,16 +1,14 @@
 using FluentAssertions;
 using Articles.Application.Admin;
 using Articles.Application.Posts;
-using Articles.Application.Posts.Dtos;
 using Articles.Domain.Exceptions;
 using Articles.Infrastructure.Persistence;
-using Articles.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Articles.Tests.Posts;
 
-/// <summary>"Improve text with AI": the structure is never the AI's to change, links keep their addresses, and the original is kept.</summary>
+/// <summary>"Improve text with AI": the structure is never the AI's to change, and links keep their addresses.</summary>
 public class TextImprovementTests : IDisposable
 {
     private sealed class FakeModel : ITextModel
@@ -38,19 +36,12 @@ public class TextImprovementTests : IDisposable
     public TextImprovementTests()
     {
         _log = new ActivityLog(_fixture.Db, NullLogger<ActivityLog>.Instance, _clock);
-        _service = new TextImprovementService(_model, new TextImprovementRepository(_fixture.Db), _fixture.Db, _log, _clock);
+        _service = new TextImprovementService(_model, _log, _clock);
     }
 
     public void Dispose() => _fixture.Dispose();
 
     private static ImproveTextRequest Lines(params string[] lines) => new(lines);
-
-    private async Task<Guid> PostAsync(string handle = "ada")
-    {
-        var ada = await _fixture.AddUserAsync(handle);
-        var posts = new PostService(_fixture.Posts, _fixture.Tags, _fixture.Engagement, _fixture.Db);
-        return (await posts.CreateDraftAsync(new CreatePostRequest("A post", null, TestDatabase.Document("Body."), null, []), ada.Id)).Id;
-    }
 
     // ---- Improving ------------------------------------------------------------------------------
 
@@ -245,84 +236,5 @@ public class TextImprovementTests : IDisposable
 
         failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("not set up");
         (await _service.GetStatusAsync()).Should().Be(new TextImprovementStatus(false, 0, 20));
-    }
-
-    // ---- Keeping the original -------------------------------------------------------------------
-
-    private const string Original = "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"old\"}]}]}";
-    private const string Improved = "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"new\"}]}]}";
-
-    [Fact]
-    public async Task The_original_is_kept_exactly_as_the_editor_wrote_it_and_can_be_listed_newest_first()
-    {
-        var post = await PostAsync();
-
-        var first = await _service.SaveOriginalAsync("owner@example.com", new SaveOriginalRequest(post, Original, Improved));
-        await Task.Delay(5);
-        var second = await _service.SaveOriginalAsync("owner@example.com", new SaveOriginalRequest(post, Original.Replace("old", "older"), Improved));
-
-        var listed = await _service.ListOriginalsAsync(post);
-        listed.Select(o => o.Id).Should().Equal(second.Id, first.Id);
-        listed.Last().OriginalJson.Should().Be(Original, "bold, links and lists survive byte for byte");
-        listed.Last().ImprovedJson.Should().Be(Improved);
-        (await _log.GetPageAsync(1, 10)).Items.Should().Contain(e => e.Action == Activity.ReplacedTextWithAi);
-    }
-
-    [Fact]
-    public async Task Originals_belong_to_their_own_post()
-    {
-        var one = await PostAsync();
-        var two = await PostAsync("bob");
-
-        await _service.SaveOriginalAsync("owner@example.com", new SaveOriginalRequest(one, Original, Improved));
-
-        (await _service.ListOriginalsAsync(two)).Should().BeEmpty();
-        (await _service.ListOriginalsAsync(one)).Should().HaveCount(1);
-    }
-
-    [Fact]
-    public async Task An_original_for_a_post_that_does_not_exist_is_not_found()
-    {
-        var failure = await Record.ExceptionAsync(() => _service.SaveOriginalAsync("owner@example.com", new SaveOriginalRequest(Guid.NewGuid(), Original, Improved)));
-
-        failure.Should().BeOfType<NotFoundException>();
-    }
-
-    [Theory]
-    [InlineData(null, "{}")]
-    [InlineData("", "{}")]
-    [InlineData("{}", null)]
-    [InlineData("{}", "  ")]
-    public async Task An_original_or_improved_text_that_is_missing_is_refused(string? original, string? improved)
-    {
-        var post = await PostAsync();
-
-        var failure = await Record.ExceptionAsync(() => _service.SaveOriginalAsync("owner@example.com", new SaveOriginalRequest(post, original, improved)));
-
-        failure.Should().BeOfType<DomainException>();
-        (await _service.ListOriginalsAsync(post)).Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task A_text_too_long_to_keep_is_refused()
-    {
-        var post = await PostAsync();
-
-        var failure = await Record.ExceptionAsync(() => _service.SaveOriginalAsync("owner@example.com", new SaveOriginalRequest(post, new string('x', 200_001), Improved)));
-
-        failure.Should().BeOfType<DomainException>();
-    }
-
-    [Fact]
-    public async Task Deleting_a_post_takes_its_kept_originals_with_it()
-    {
-        var post = await PostAsync();
-        await _service.SaveOriginalAsync("owner@example.com", new SaveOriginalRequest(post, Original, Improved));
-
-        var entity = (await _fixture.Posts.GetByIdAsync(post))!;
-        _fixture.Db.Remove(entity);
-        await _fixture.Db.SaveChangesAsync();
-
-        (await _service.ListOriginalsAsync(post)).Should().BeEmpty();
     }
 }

@@ -4,12 +4,13 @@ import { imageUrl } from '../api/client'
 import { uploadImage } from '../posts/imageUpload'
 import {
   MAX_CAPTION, MAX_REFERENCES, MAX_REFERENCE_TITLE, MAX_SECTIONS, hasContent, moveSection, newSection,
-  removeSection, sectionLabels, updateSection,
+  removeSection, sectionLabels, updateSection, withImprovement, withoutHistory,
 } from '../posts/sections'
 import type { Reference, Section, SectionType } from '../posts/sections'
 import { useConfirm } from './feedback'
 import { GenerateImagePanel } from './GenerateImagePanel'
 import { SparkleIcon } from './SparkleIcon'
+import { KeptVersions } from './KeptVersions'
 import { RichEditor } from './RichEditor'
 import { ErrorNote } from './ui'
 
@@ -18,7 +19,7 @@ type Update = (change: (sections: Section[]) => Section[]) => void
 
 const ADDABLE: SectionType[] = ['text', 'image', 'references']
 
-export function SectionList({ sections, onChange, postId = null }: { sections: Section[]; onChange: Update; postId?: string | null }) {
+export function SectionList({ sections, onChange }: { sections: Section[]; onChange: Update }) {
   const confirm = useConfirm()
 
   const edit = (key: string, change: (section: Section) => Section) => onChange((current) => updateSection(current, key, change))
@@ -55,7 +56,21 @@ export function SectionList({ sections, onChange, postId = null }: { sections: S
             </header>
 
             {section.type === 'text' && (
-              <RichEditor postId={postId} initialContent={section.doc} onChange={(doc) => edit(section.key, (s) => (s.type === 'text' ? { ...s, doc } : s))} />
+              <>
+                <RichEditor
+                  initialContent={section.doc}
+                  onChange={(doc) => edit(section.key, (s) => (s.type === 'text' ? { ...s, doc } : s))}
+                  // The wording the AI replaced is kept in the post, beside the new text, until the writer lets it go.
+                  onImproved={(previousDoc, newDoc) => edit(section.key, (s) => withImprovement(s, previousDoc, newDoc))}
+                />
+                {section.history.length > 0 && (
+                  <KeptVersions
+                    versions={section.history}
+                    onPutBack={(doc) => edit(section.key, (s) => (s.type === 'text' ? { ...s, doc } : s))}
+                    onRemove={() => edit(section.key, withoutHistory)}
+                  />
+                )}
+              </>
             )}
             {section.type === 'image' && (
               <ImageEditor section={section} onChange={(change) => edit(section.key, (s) => (s.type === 'image' ? { ...s, ...change } : s))} />

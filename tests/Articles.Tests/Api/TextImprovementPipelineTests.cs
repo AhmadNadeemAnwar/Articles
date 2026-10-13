@@ -56,20 +56,12 @@ public class TextImprovementPipelineTests : IClassFixture<AdminApiFactory>
         return (await Json(response)).GetProperty("token").GetString()!;
     }
 
-    private async Task<string> NewPostAsync(string token)
-    {
-        var post = await Json(await Send(HttpMethod.Post, "/api/v1/posts", token,
-            new { title = "To improve", subtitle = (string?)null, contentJson = TestDatabase.Document("Body."), coverImageUrl = (string?)null, tags = Array.Empty<string>(), categoryId = (string?)null }));
-        return post.GetProperty("id").GetString()!;
-    }
-
     [Fact]
     public async Task Only_an_admin_session_can_use_any_of_it()
     {
         var reader = await TokenAsync(admin: false);
-        var id = Guid.NewGuid();
 
-        foreach (var (method, path) in new[] { (HttpMethod.Get, "/api/v1/admin/text-improvement"), (HttpMethod.Post, "/api/v1/admin/text-improvement/improve"), (HttpMethod.Post, "/api/v1/admin/text-improvement/originals"), (HttpMethod.Get, $"/api/v1/admin/text-improvement/originals/{id}") })
+        foreach (var (method, path) in new[] { (HttpMethod.Get, "/api/v1/admin/text-improvement"), (HttpMethod.Post, "/api/v1/admin/text-improvement/improve") })
         {
             (await Send(method, path)).StatusCode.Should().Be(HttpStatusCode.Unauthorized, path);
             (await Send(method, path, reader)).StatusCode.Should().Be(HttpStatusCode.Forbidden, path);
@@ -102,29 +94,6 @@ public class TextImprovementPipelineTests : IClassFixture<AdminApiFactory>
     {
         (await Send(HttpMethod.Post, "/api/v1/admin/text-improvement/improve", await TokenAsync(admin: true), new { units = Array.Empty<string>() })).StatusCode
             .Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Fact]
-    public async Task The_original_is_kept_and_listed_for_its_post()
-    {
-        var token = await TokenAsync(admin: true);
-        var post = await NewPostAsync(token);
-        const string original = "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"old\"}]}]}";
-
-        var saved = await Send(HttpMethod.Post, "/api/v1/admin/text-improvement/originals", token, new { postId = post, originalJson = original, improvedJson = "{\"type\":\"doc\"}" });
-        var listed = await Json(await Send(HttpMethod.Get, $"/api/v1/admin/text-improvement/originals/{post}", token));
-
-        saved.StatusCode.Should().Be(HttpStatusCode.OK);
-        listed.GetArrayLength().Should().Be(1);
-        listed[0].GetProperty("originalJson").GetString().Should().Be(original);
-    }
-
-    [Fact]
-    public async Task An_original_for_a_post_that_does_not_exist_is_not_found()
-    {
-        var response = await Send(HttpMethod.Post, "/api/v1/admin/text-improvement/originals", await TokenAsync(admin: true), new { postId = Guid.NewGuid(), originalJson = "{}", improvedJson = "{}" });
-
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]

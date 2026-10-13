@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Articles.Api.Controllers;
 
-/// <summary>"Improve text with AI" for the post editor, and the originals kept when the writer applies it. Admin only.</summary>
+/// <summary>"Improve text with AI" for the post editor. Admin only.</summary>
 [ApiController]
 [Route("api/v1/admin/text-improvement")]
 [Authorize(Policy = AdminRequirement.PolicyName)]
@@ -26,13 +26,4 @@ public class TextImprovementController : ControllerBase
     [HttpPost("improve")]
     public async Task<ActionResult<ImprovedTextDto>> Improve(ImproveTextRequest request, CancellationToken ct) =>
         Ok(await _service.ImproveAsync(Admin, request, ct));
-
-    /// <summary>Keeps the text as it was, written just before the writer replaces it with the AI's version.</summary>
-    [HttpPost("originals")]
-    public async Task<ActionResult<SavedOriginalDto>> SaveOriginal(SaveOriginalRequest request, CancellationToken ct) =>
-        Ok(await _service.SaveOriginalAsync(Admin, request, ct));
-
-    [HttpGet("originals/{postId:guid}")]
-    public async Task<ActionResult<IReadOnlyList<SavedOriginalDto>>> Originals(Guid postId, CancellationToken ct) =>
-        Ok(await _service.ListOriginalsAsync(postId, ct));
 }

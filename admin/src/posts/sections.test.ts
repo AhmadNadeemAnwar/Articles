@@ -8,7 +8,7 @@ import type { Section } from './sections'
 const IMAGE_ID = '0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11'
 
 const paragraph = (words: string) => ({ type: 'paragraph', content: [{ type: 'text', text: words }] })
-const textSection = (words: string): Section => ({ key: `t-${words}`, type: 'text', doc: JSON.stringify({ type: 'doc', content: [paragraph(words)] }) })
+const textSection = (words: string): Section => ({ key: `t-${words}`, type: 'text', doc: JSON.stringify({ type: 'doc', content: [paragraph(words)] }), history: [], liveState: null })
 const imageSection = (imageId: string | null = IMAGE_ID, size: { width: number | null; height: number | null } = { width: null, height: null }): Section =>
   ({ key: 'img', type: 'image', imageId, alt: 'A chart', caption: 'Figure 1', ...size })
 const referencesSection = (...items: [string, string][]): Section => ({ key: 'refs', type: 'references', items: items.map(([title, url]) => ({ title, url })) })
@@ -54,7 +54,7 @@ describe('serializeContent', () => {
   })
 
   it('stores an empty paragraph for a text section whose document is unreadable', () => {
-    expect(stored([{ key: 'x', type: 'text', doc: 'not json' }]).content[0].content).toEqual([{ type: 'paragraph' }])
+    expect(stored([{ key: 'x', type: 'text', doc: 'not json', history: [], liveState: null }]).content[0].content).toEqual([{ type: 'paragraph' }])
   })
 })
 

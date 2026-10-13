@@ -1,8 +1,6 @@
 using System.Text.RegularExpressions;
 using Articles.Application.Admin;
-using Articles.Domain.Entities;
 using Articles.Domain.Exceptions;
-using Articles.Domain.Interfaces;
 
 namespace Articles.Application.Posts;
 
@@ -23,16 +21,10 @@ public sealed record ImprovedTextDto(IReadOnlyList<string> Units, int Changed, i
 
 public sealed record TextImprovementStatus(bool Enabled, int UsedToday, int DailyLimit);
 
-public sealed record SaveOriginalRequest(Guid PostId, string? OriginalJson, string? ImprovedJson);
-
-public sealed record SavedOriginalDto(Guid Id, DateTimeOffset CreatedAt, string OriginalJson, string ImprovedJson);
-
 public interface ITextImprovementService
 {
     Task<TextImprovementStatus> GetStatusAsync(CancellationToken ct = default);
     Task<ImprovedTextDto> ImproveAsync(string admin, ImproveTextRequest request, CancellationToken ct = default);
-    Task<SavedOriginalDto> SaveOriginalAsync(string admin, SaveOriginalRequest request, CancellationToken ct = default);
-    Task<IReadOnlyList<SavedOriginalDto>> ListOriginalsAsync(Guid postId, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -53,7 +45,6 @@ public sealed partial class TextImprovementService : ITextImprovementService
     public const int ChunkCharacters = 5000;
     public const int ChunkUnits = 40;
     public const int MaxAttempts = 2;
-    public const int ListLimit = 50;
 
     private const string LineBreak = "⏎";
 
@@ -79,16 +70,12 @@ public sealed partial class TextImprovementService : ITextImprovementService
     private static readonly SemaphoreSlim Gate = new(1, 1);
 
     private readonly ITextModel _model;
-    private readonly ITextImprovementRepository _originals;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IActivityLog _activity;
     private readonly TimeProvider _time;
 
-    public TextImprovementService(ITextModel model, ITextImprovementRepository originals, IUnitOfWork unitOfWork, IActivityLog activity, TimeProvider? time = null)
+    public TextImprovementService(ITextModel model, IActivityLog activity, TimeProvider? time = null)
     {
         _model = model;
-        _originals = originals;
-        _unitOfWork = unitOfWork;
         _activity = activity;
         _time = time ?? TimeProvider.System;
     }
@@ -220,20 +207,6 @@ public sealed partial class TextImprovementService : ITextImprovementService
 
     private static HashSet<string> Addresses(string text) =>
         LinkAddress().Matches(text).Select(m => m.Groups[1].Value).ToHashSet(StringComparer.Ordinal);
-
-    public async Task<SavedOriginalDto> SaveOriginalAsync(string admin, SaveOriginalRequest request, CancellationToken ct = default)
-    {
-        if (!await _originals.PostExistsAsync(request.PostId, ct)) throw new NotFoundException(nameof(Post), request.PostId);
-
-        var kept = new TextImprovement(request.PostId, request.OriginalJson ?? string.Empty, request.ImprovedJson ?? string.Empty, admin);
-        await _originals.AddAsync(kept, ct);
-        await _unitOfWork.SaveChangesAsync(ct);
-        await _activity.RecordAsync(admin, Activity.ReplacedTextWithAi, "original kept", ct);
-        return new SavedOriginalDto(kept.Id, kept.CreatedAt, kept.OriginalJson, kept.ImprovedJson);
-    }
-
-    public async Task<IReadOnlyList<SavedOriginalDto>> ListOriginalsAsync(Guid postId, CancellationToken ct = default) =>
-        (await _originals.ListForPostAsync(postId, ListLimit, ct)).Select(t => new SavedOriginalDto(t.Id, t.CreatedAt, t.OriginalJson, t.ImprovedJson)).ToList();
 
     [GeneratedRegex(@"^\[(\d{1,4})\]\s*(.*)$", RegexOptions.Singleline)]
     private static partial Regex LineNumber();

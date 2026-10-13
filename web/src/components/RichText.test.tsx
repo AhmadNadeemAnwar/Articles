@@ -8,7 +8,55 @@ const paragraph = (words: string) => ({ type: 'paragraph', content: [{ type: 'te
 const html = (body: unknown) => renderToStaticMarkup(<RichText contentJson={typeof body === 'string' ? body : JSON.stringify(body)} />)
 const sections = (...content: unknown[]) => ({ type: 'sections', content })
 
+describe('earlier versions kept beside the improved text', () => {
+  const text = (words: string, state?: string) => ({ type: 'textSection', ...(state ? { textState: state } : {}), content: [paragraph(words)] })
+
+  it('shows only the newest of an original and its improvements', () => {
+    const out = html(sections(text('Intro.'), text('oldwording', 'Original'), text('firstwording', 'Improved'), text('midwording', 'Improved_2026-10-14T10:30:00Z'), text('newwording', 'Improved_2026-10-15T08:00:00Z'), text('End.')))
+
+    expect(out).toContain('Intro.')
+    expect(out).toContain('newwording')
+    expect(out).toContain('End.')
+    for (const hidden of ['oldwording', 'firstwording', 'midwording']) expect(out).not.toContain(hidden)
+  })
+
+  it('shows the improved text when there is just an original and one improvement', () => {
+    const out = html(sections(text('before', 'Original'), text('after', 'Improved')))
+
+    expect(out).toContain('after')
+    expect(out).not.toContain('before')
+  })
+
+  it('never shows an original, even one left with nothing after it', () => {
+    expect(html(sections(text('before', 'Original'), text('Visible.')))).not.toContain('before')
+  })
+
+  it('shows ordinary sections, and a state it does not know, as they are', () => {
+    const out = html(sections(text('One.'), text('Two.', 'Draft')))
+
+    expect(out).toContain('One.')
+    expect(out).toContain('Two.')
+  })
+})
+
 describe('RichText', () => {
+  describe('numbered lists', () => {
+    const item = (words: string) => ({ type: 'listItem', content: [paragraph(words)] })
+    const list = (start: number | undefined, ...items: string[]) => ({ type: 'orderedList', ...(start === undefined ? {} : { attrs: { start } }), content: items.map(item) })
+
+    it('carries on counting when a list was split by a quote and says where it starts', () => {
+      const out = html({ type: 'doc', content: [list(1, 'First'), { type: 'blockquote', content: [paragraph('Aside')] }, list(2, 'Second'), { type: 'blockquote', content: [paragraph('Aside')] }, list(3, 'Third')] })
+
+      expect(out).toContain('<ol><li><p>First</p></li></ol>')
+      expect(out).toContain('<ol start="2"><li><p>Second</p></li></ol>')
+      expect(out).toContain('<ol start="3"><li><p>Third</p></li></ol>')
+    })
+
+    it('starts at one when no start is given, and ignores one that makes no sense', () => {
+      for (const start of [undefined, 0, -4, 1.5, 1e9, Number.NaN]) expect(html({ type: 'doc', content: [list(start, 'x')] })).toContain('<ol><li>')
+    })
+  })
+
   it('still renders a post written before sections existed', () => {
     const out = html({ type: 'doc', content: [paragraph('An older post.'), { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'A heading' }] }] })
 

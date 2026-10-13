@@ -2,7 +2,7 @@ import type { GrammarMatch } from '../posts/grammar'
 import type {
   ActivityEntry, AdminComment, AdminPost, AdminTag, Category, Collection, NotifyResult, Subscriber, SubscribersSummary, Frontmatter, Paged, PortfolioEntry, PortfolioStatus,
   PortfolioSummary, PostDraft, PostInput, PostRevision, PostRevisionDetail, PostStatus, PostTag, Profile, ProfileInput,
-  GeneratedImage, GenerationStatus, GlobalNote, ImprovedText, SavedOriginal, ThemeSuggestion, Session, SiteSettings, Stats, StoredImage,
+  GeneratedImage, GenerationStatus, GlobalNote, ImprovedText, ThemeSuggestion, Session, SiteSettings, Stats, StoredImage,
 } from './types'
 
 // Empty in development (Vite proxies /api); the production build bakes in the API's absolute URL.
@@ -143,9 +143,6 @@ export const api = {
 
   improveStatus: () => request<GenerationStatus>('GET', '/api/v1/admin/text-improvement'),
   improveText: (units: string[]) => request<ImprovedText>('POST', '/api/v1/admin/text-improvement/improve', { units }),
-  saveOriginal: (postId: string, originalJson: string, improvedJson: string) =>
-    request<SavedOriginal>('POST', '/api/v1/admin/text-improvement/originals', { postId, originalJson, improvedJson }),
-  savedOriginals: (postId: string) => request<SavedOriginal[]>('GET', `/api/v1/admin/text-improvement/originals/${postId}`),
 
   globalNote: () => request<GlobalNote>('GET', '/api/v1/admin/global-note'),
   saveGlobalNote: (text: string) => request<GlobalNote>('PUT', '/api/v1/admin/global-note', { text }),

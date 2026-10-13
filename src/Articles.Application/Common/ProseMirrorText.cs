@@ -54,6 +54,18 @@ public static class ProseMirrorText
             return;
         }
 
+        // Earlier versions kept beside the newest improved text are not part of the post: not searched, shown or counted.
+        if (type == "sections" && element.TryGetProperty("content", out var all) && all.ValueKind == JsonValueKind.Array)
+        {
+            var hidden = PostContent.HiddenSections(all);
+            var position = 0;
+            foreach (var section in all.EnumerateArray())
+            {
+                if (!hidden.Contains(position++)) Walk(section, builder);
+            }
+            return;
+        }
+
         // Images contribute their alt text so illustrated posts stay findable.
         if (type == "image" && element.TryGetProperty("attrs", out var attrs)
             && attrs.TryGetProperty("alt", out var alt) && alt.ValueKind == JsonValueKind.String)

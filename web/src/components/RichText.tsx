@@ -10,6 +10,8 @@ interface Node {
   type: string
   text?: string
   attrs?: Record<string, unknown>
+  /** On a text section: "Original" is the writer's version kept beside the AI's, never shown to readers. */
+  textState?: string
   marks?: Mark[]
   content?: Node[]
 }
@@ -36,7 +38,24 @@ export function RichText({ contentJson }: { contentJson: string }) {
   // until the reader scrolls near them.
   const first = Array.isArray(doc?.content) ? doc.content.find((node) => node?.type === 'imageSection') : undefined
 
-  return <div className="prose">{renderChildren(doc?.content, first)}</div>
+  return <div className="prose">{renderChildren(visibleSections(doc?.content), first)}</div>
+}
+
+/** "Improved", or "Improved_" and a time: one of the AI's versions of a section. */
+const IMPROVED = /^Improved(_\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,7})?Z)?$/
+const isImproved = (node: Node | undefined) => node?.type === 'textSection' && typeof node.textState === 'string' && IMPROVED.test(node.textState)
+
+/**
+ * What a reader sees of a list of sections. A writer's earlier wording is kept in the post beside the AI's improved text
+ * (an "Original" section, then "Improved", then "Improved_" and a time for each later version), but only the newest
+ * of them is shown.
+ */
+export function visibleSections(nodes: Node[] | undefined): Node[] | undefined {
+  if (!Array.isArray(nodes)) return nodes
+  return nodes.filter((node, i) => {
+    if (node?.type === 'textSection' && node.textState === 'Original') return false
+    return !(isImproved(node) && isImproved(nodes[i + 1]))
+  })
 }
 
 function renderChildren(nodes: Node[] | undefined, first?: Node): ReactNode {
@@ -72,8 +91,11 @@ function RenderNode({ node, first }: { node: Node; first?: Node }): ReactNode {
     case 'bulletList':
       return <ul>{renderChildren(node.content)}</ul>
 
-    case 'orderedList':
-      return <ol>{renderChildren(node.content)}</ol>
+    case 'orderedList': {
+      // A numbered list that carries on after a quote or a paragraph is stored as several lists, each saying where it starts.
+      const start = Number(node.attrs?.start)
+      return <ol start={Number.isInteger(start) && start > 1 && start < 10000 ? start : undefined}>{renderChildren(node.content)}</ol>
+    }
 
     case 'listItem':
       return <li>{renderChildren(node.content)}</li>

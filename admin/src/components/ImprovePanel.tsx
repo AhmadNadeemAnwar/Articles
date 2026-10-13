@@ -18,8 +18,8 @@ interface Proposal {
   dailyLimit: number
 }
 
-/** "Improve text with AI" for one text section: nothing changes until the writer presses Apply, and the original is kept first. */
-export function ImprovePanel({ editor, postId }: { editor: Editor; postId: string | null }) {
+/** "Improve text with AI" for one text section: nothing changes until the writer presses Apply. The wording it replaces is kept in the post. */
+export function ImprovePanel({ editor, onImproved }: { editor: Editor; onImproved?: (previousDoc: string, newDoc: string) => void }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [enabled, setEnabled] = useState<boolean | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -87,10 +87,6 @@ export function ImprovePanel({ editor, postId }: { editor: Editor; postId: strin
 
   async function apply() {
     if (!proposal) return
-    if (!postId) {
-      setError('Save the draft once first, so the original can be kept with the post.')
-      return
-    }
     // The section must still be what the AI was shown, or its answer no longer fits.
     if (JSON.stringify(currentDoc()) !== JSON.stringify(proposal.original)) {
       setProposal(null)
@@ -100,14 +96,12 @@ export function ImprovePanel({ editor, postId }: { editor: Editor; postId: strin
 
     setApplying(true)
     try {
-      // The original is kept first: if that fails, nothing is replaced.
-      await api.saveOriginal(postId, JSON.stringify(proposal.original), JSON.stringify(proposal.improved))
+      // The wording being replaced goes into the post beside the new text before anything is replaced.
+      onImproved?.(JSON.stringify(proposal.original), JSON.stringify(proposal.improved))
       editor.chain().focus().setContent(proposal.improved as never).run()
       setApplied(true)
       setProposal(null)
       setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'The original could not be kept, so the text was not replaced.')
     } finally {
       setApplying(false)
     }
@@ -117,12 +111,12 @@ export function ImprovePanel({ editor, postId }: { editor: Editor; postId: strin
 
   return (
     <>
-      <button type="button" className="btn btn--small btn--ai" disabled={busy !== null || !postId}
-        title={postId ? 'Reword this section with AI: better grammar and sentences that connect' : 'Save the draft once first, so the original can be kept with the post'}
+      <button type="button" className="btn btn--small btn--ai" disabled={busy !== null}
+        title="Reword this section with AI: better grammar and sentences that connect"
         onClick={() => void improve()}>
         {busy ?? 'Improve text with AI'}
       </button>
-      {applied && <span className="field__hint" role="status">Replaced. Press Ctrl+Z to undo, or find the original under “Original texts”.</span>}
+      {applied && <span className="field__hint" role="status">Replaced. Your wording is kept under “Earlier versions” below this section. Press Ctrl+Z to undo.</span>}
       {error && <div className="grammar__error"><ErrorNote message={error} /></div>}
 
       <dialog ref={dialog} className="dialog dialog--wide" onCancel={(event) => { event.preventDefault(); close() }}
@@ -149,7 +143,7 @@ export function ImprovePanel({ editor, postId }: { editor: Editor; postId: strin
             </div>
 
             <p className="field__hint">
-              Apply keeps your original under “Original texts” and puts this version in. {Math.max(0, proposal.dailyLimit - proposal.usedToday)} AI goes left today.
+              Apply puts this version in and keeps your wording under “Earlier versions”, in the post. {Math.max(0, proposal.dailyLimit - proposal.usedToday)} AI goes left today.
             </p>
             <div className="dialog__actions">
               <button type="button" className="btn" onClick={close} disabled={applying}>Cancel</button>

@@ -147,7 +147,12 @@ export function plainText(contentJson) {
     if (!node || typeof node !== 'object') return
     if (typeof node.text === 'string') parts.push(node.text)
     if (Array.isArray(node.content)) {
-      node.content.forEach(walk)
+      // The writer's earlier wording, kept beside the AI's improved text, is not part of what readers see: only the newest is.
+      const improved = (n) => n && n.type === 'textSection' && typeof n.textState === 'string' && /^Improved(_\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,7})?Z)?$/.test(n.textState)
+      const shown = node.type === 'sections'
+        ? node.content.filter((n, i, all) => !(n && n.type === 'textSection' && n.textState === 'Original') && !(improved(n) && improved(all[i + 1])))
+        : node.content
+      shown.forEach(walk)
       // Blocks are separate sentences, not one run-on word.
       parts.push(' ')
     }

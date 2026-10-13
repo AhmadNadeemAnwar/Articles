@@ -10,6 +10,14 @@
  *       { type: "referencesSection", attrs: { items: [{ title, url }] } } ] }
  *
  * Posts written before sections existed are a single { type: "doc" } and open as one text section.
+ *
+ * When the writer applies "Improve text with AI", the wording it replaced is kept in the body, as text sections placed
+ * before the one readers see, each with a "textState":
+ *       { type: "textSection", textState: "Original", content: [...] }                         what the writer wrote
+ *       { type: "textSection", textState: "Improved", content: [...] }                         the first improvement
+ *       { type: "textSection", textState: "Improved_2026-10-14T10:30:00Z", content: [...] }    each later one
+ * The editor shows such a group as ONE section (the newest text, with the earlier versions folded away below it), and
+ * readers see only the newest. Moving or deleting the section moves or deletes the whole group.
  */
 
 export interface Reference {
@@ -18,12 +26,35 @@ export interface Reference {
 }
 
 export type Section =
-  | { key: string; type: 'text'; doc: string }
+  /**
+   * `doc` is the text readers see. `history` holds earlier versions kept beside it, oldest first (the first is the
+   * writer's original); `liveState` is the state `doc` is stored under, which is null for a section never improved.
+   */
+  | { key: string; type: 'text'; doc: string; history: KeptVersion[]; liveState: string | null }
   /** `width` and `height` are the stored picture's size in pixels, or null for pictures added before sizes were kept. */
   | { key: string; type: 'image'; imageId: string | null; alt: string; caption: string; width: number | null; height: number | null }
   | { key: string; type: 'references'; items: Reference[] }
 
 export type SectionType = Section['type']
+
+/** An earlier version of a text section: the editor's own JSON for it, and the state it is stored under. */
+export interface KeptVersion {
+  state: string
+  doc: string
+}
+
+/** The most earlier versions kept for one section (the first, the writer's original, is never the one dropped). */
+export const MAX_KEPT_VERSIONS = 10
+
+export const ORIGINAL = 'Original'
+export const IMPROVED = 'Improved'
+const IMPROVED_AT = /^Improved_\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,7})?Z$/
+
+/** "Improved", or "Improved_" and a time: one of the AI's versions. */
+export const isImprovedState = (state: unknown): state is string => state === IMPROVED || (typeof state === 'string' && IMPROVED_AT.test(state))
+
+/** The state for an improvement made at `at`, to the second: "Improved_2026-10-14T10:30:00Z". */
+export const improvedStateAt = (at: Date) => `${IMPROVED}_${at.toISOString().replace(/\.\d+Z$/, 'Z')}`
 
 export const MAX_SECTIONS = 100
 export const MAX_REFERENCES = 50
@@ -40,7 +71,7 @@ const newKey = () => `s${Date.now().toString(36)}${(counter++).toString(36)}`
 
 export function newSection(type: SectionType): Section {
   switch (type) {
-    case 'text': return { key: newKey(), type, doc: EMPTY_DOC }
+    case 'text': return { key: newKey(), type, doc: EMPTY_DOC, history: [], liveState: null }
     case 'image': return { key: newKey(), type, imageId: null, alt: '', caption: '', width: null, height: null }
     case 'references': return { key: newKey(), type, items: [{ title: '', url: '' }] }
   }
@@ -69,20 +100,49 @@ export function parseContent(json: string | null | undefined): Section[] {
 
   if (root.type === 'doc') {
     const content = Array.isArray(root.content) && root.content.length > 0 ? root.content : [{ type: 'paragraph' }]
-    return [{ key: newKey(), type: 'text', doc: JSON.stringify({ type: 'doc', content }) }]
+    return [{ key: newKey(), type: 'text', doc: JSON.stringify({ type: 'doc', content }), history: [], liveState: null }]
   }
 
   if (root.type !== 'sections' || !Array.isArray(root.content)) return [newSection('text')]
 
   const sections: Section[] = []
+  // The versions of one improved section are stored side by side, oldest first; they are gathered here and become one section.
+  let group: KeptVersion[] | null = null
+
+  const closeGroup = () => {
+    if (!group) return
+    const live = group[group.length - 1]
+    // A lone original, with no improved text after it, is just text: it opens as an ordinary section.
+    if (group.length === 1) sections.push({ key: newKey(), type: 'text', doc: live.doc, history: [], liveState: null })
+    else sections.push({ key: newKey(), type: 'text', doc: live.doc, history: group.slice(0, -1), liveState: live.state })
+    group = null
+  }
+
   for (const raw of root.content) {
     if (!isObject(raw)) continue
     const attrs = isObject(raw.attrs) ? raw.attrs : {}
 
     if (raw.type === 'textSection') {
       const content = Array.isArray(raw.content) && raw.content.length > 0 ? raw.content : [{ type: 'paragraph' }]
-      sections.push({ key: newKey(), type: 'text', doc: JSON.stringify({ type: 'doc', content }) })
-    } else if (raw.type === 'imageSection') {
+      const doc = JSON.stringify({ type: 'doc', content })
+      const state = raw.textState
+
+      if (state === ORIGINAL) {
+        closeGroup()
+        group = [{ state: ORIGINAL, doc }]
+        continue
+      }
+      if (group && isImprovedState(state)) {
+        group.push({ state, doc })
+        continue
+      }
+      closeGroup()
+      sections.push({ key: newKey(), type: 'text', doc, history: [], liveState: null })
+      continue
+    }
+    closeGroup()
+
+    if (raw.type === 'imageSection') {
       const imageId = text(attrs.imageId)
       const width = toDimension(attrs.width)
       const height = toDimension(attrs.height)
@@ -98,6 +158,7 @@ export function parseContent(json: string | null | undefined): Section[] {
     }
   }
 
+  closeGroup()
   return sections.length > 0 ? sections : [newSection('text')]
 }
 
@@ -120,7 +181,11 @@ export function serializeContent(sections: Section[]): string {
 
   for (const section of sections) {
     if (section.type === 'text') {
-      content.push({ type: 'textSection', content: docContent(section.doc) })
+      // Earlier versions go first, oldest first, then the text readers see: that is the order the API checks.
+      const kept = section.history.length > 0
+      for (const version of kept ? section.history : []) content.push({ type: 'textSection', textState: version.state, content: docContent(version.doc) })
+      const state = kept ? (isImprovedState(section.liveState) ? section.liveState : section.history.length === 1 ? IMPROVED : improvedStateAt(new Date())) : null
+      content.push({ type: 'textSection', ...(state ? { textState: state } : {}), content: docContent(section.doc) })
     } else if (section.type === 'image') {
       if (!section.imageId) continue
       const width = toDimension(section.width)
@@ -142,6 +207,34 @@ export function serializeContent(sections: Section[]): string {
   }
 
   return JSON.stringify({ type: 'sections', content })
+}
+
+/**
+ * The section after the writer has applied an improvement: what was there before is kept as an earlier version, and `doc` is the
+ * new text. The first time, the writer's own wording is kept as "Original" and the new text is "Improved"; every later time, the
+ * text it replaces is kept under the state it had and the new text is "Improved_" and the time it was made.
+ */
+export function withImprovement(section: Section, previousDoc: string, newDoc: string, at: Date = new Date()): Section {
+  if (section.type !== 'text') return section
+
+  let history: KeptVersion[]
+  let liveState: string
+  if (section.history.length === 0) {
+    history = [{ state: ORIGINAL, doc: previousDoc }]
+    liveState = IMPROVED
+  } else {
+    history = [...section.history, { state: isImprovedState(section.liveState) ? section.liveState : IMPROVED, doc: previousDoc }]
+    liveState = improvedStateAt(at)
+  }
+
+  // Keep the original and the newest few; the oldest improvements are the ones let go.
+  while (history.length > MAX_KEPT_VERSIONS) history.splice(1, 1)
+  return { ...section, doc: newDoc, history, liveState }
+}
+
+/** The section with its earlier versions let go: what readers see stays as it is. */
+export function withoutHistory(section: Section): Section {
+  return section.type === 'text' ? { ...section, history: [], liveState: null } : section
 }
 
 /** Moves a section one place up (-1) or down (+1). Returns the same array when it cannot move. */
