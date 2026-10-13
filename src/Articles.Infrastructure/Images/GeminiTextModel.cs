@@ -150,39 +150,3 @@ public sealed class GeminiTextModel : ITextModel
         return string.Empty;
     }
 }
-
-/// <summary>
-/// The model "Improve text with AI" uses: Gemini when its key is set, otherwise (or when Google cannot answer) the model on
-/// Cloudflare. Both are free; with neither set up the feature is switched off.
-/// </summary>
-public sealed class PreferredTextModel : ITextModel
-{
-    private readonly GeminiTextModel _gemini;
-    private readonly ITextModel _fallback;
-    private readonly ILogger<PreferredTextModel> _logger;
-
-    public PreferredTextModel(GeminiTextModel gemini, ITextModel fallback, ILogger<PreferredTextModel> logger)
-    {
-        _gemini = gemini;
-        _fallback = fallback;
-        _logger = logger;
-    }
-
-    public bool IsEnabled => _gemini.IsEnabled || _fallback.IsEnabled;
-
-    public async Task<string> CompleteAsync(string instruction, string request, int maxTokens, double temperature, CancellationToken ct = default)
-    {
-        if (!_gemini.IsEnabled) return await _fallback.CompleteAsync(instruction, request, maxTokens, temperature, ct);
-
-        try
-        {
-            return await _gemini.CompleteAsync(instruction, request, maxTokens, temperature, ct);
-        }
-        catch (DomainException ex) when (_fallback.IsEnabled)
-        {
-            // Google's free allowance can run out for a while, or it can be briefly down: the writer should still get an answer.
-            _logger.LogWarning("Gemini did not answer ({Reason}); using the Cloudflare model instead.", ex.Message);
-            return await _fallback.CompleteAsync(instruction, request, maxTokens, temperature, ct);
-        }
-    }
-}

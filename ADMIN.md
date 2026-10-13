@@ -370,3 +370,17 @@ answers if Google cannot.
 Notes: on the free tier Google may use what it receives to improve its products, so only text you are about to publish should go
 through it. Never put the key in the repository or in chat. To switch it off, delete `Gemini__ApiKey`.
 
+## A second free option: Groq (optional, about 5 minutes)
+
+Groq runs a large open model (Llama 3.3 70B) on a free plan and writes far better sentences than the small Cloudflare model. If both
+Gemini and Groq are set up, Gemini is tried first and Groq next; Cloudflare is the last resort.
+
+1. Open <https://console.groq.com/keys> and sign in. If it asks for a **card** or to **upgrade**, stop: this project is free-only.
+2. Choose **Create API Key** and copy it.
+3. On Render, open **articles-api**, then **Environment**, and add **`Groq__ApiKey`** with the key as its value. Save; Render restarts the API.
+4. Optional: **`Groq__Model`** picks another model (default `llama-3.3-70b-versatile`). The same two settings, plus **`Groq__BaseUrl`**,
+   also work for other services that speak the same format (for example Mistral), if you ever want one.
+
+On a free plan, the text you send may be used by the service to improve its models, so only text you are about to publish should go
+through it. Never put the key in the repository or in chat.
+

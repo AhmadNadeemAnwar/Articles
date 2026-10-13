@@ -23,18 +23,6 @@ public class GeminiTextModelTests
 
     private static string Answer(string text) => JsonSerializer.Serialize(new { candidates = new[] { new { content = new { parts = new[] { new { text } } } } } });
 
-    private sealed class FakeFallback : ITextModel
-    {
-        public bool IsEnabled { get; set; } = true;
-        public int Calls { get; private set; }
-
-        public Task<string> CompleteAsync(string instruction, string request, int maxTokens, double temperature, CancellationToken ct = default)
-        {
-            Calls++;
-            return Task.FromResult("from cloudflare");
-        }
-    }
-
     [Fact]
     public void It_is_switched_off_until_a_key_is_set()
     {
@@ -145,51 +133,5 @@ public class GeminiTextModelTests
         var failure = await Record.ExceptionAsync(() => Gemini(new ThrowingHandler()).CompleteAsync("a", "b", 100, 0.2));
 
         failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("could not be reached");
-    }
-
-    // ---- Which model is used --------------------------------------------------------------------
-
-    private static PreferredTextModel Preferred(GeminiTextModel gemini, ITextModel fallback) => new(gemini, fallback, NullLogger<PreferredTextModel>.Instance);
-
-    [Fact]
-    public async Task Gemini_is_used_when_its_key_is_set()
-    {
-        var fallback = new FakeFallback();
-
-        (await Preferred(Gemini(Replying(HttpStatusCode.OK, Answer("from gemini"))), fallback).CompleteAsync("a", "b", 100, 0.2)).Should().Be("from gemini");
-        fallback.Calls.Should().Be(0);
-    }
-
-    [Fact]
-    public async Task Cloudflare_is_used_when_there_is_no_gemini_key()
-    {
-        var fallback = new FakeFallback();
-
-        (await Preferred(Gemini(Replying(HttpStatusCode.OK, "{}"), new GeminiOptions()), fallback).CompleteAsync("a", "b", 100, 0.2)).Should().Be("from cloudflare");
-    }
-
-    [Fact]
-    public async Task Cloudflare_answers_when_google_cannot()
-    {
-        var fallback = new FakeFallback();
-
-        (await Preferred(Gemini(Replying(HttpStatusCode.TooManyRequests, "{}")), fallback).CompleteAsync("a", "b", 100, 0.2)).Should().Be("from cloudflare");
-        fallback.Calls.Should().Be(1);
-    }
-
-    [Fact]
-    public async Task Google_failing_with_nothing_to_fall_back_on_is_reported()
-    {
-        var failure = await Record.ExceptionAsync(() => Preferred(Gemini(Replying(HttpStatusCode.TooManyRequests, "{}")), new FakeFallback { IsEnabled = false }).CompleteAsync("a", "b", 100, 0.2));
-
-        failure.Should().BeOfType<DomainException>().Which.Message.Should().Contain("free allowance");
-    }
-
-    [Fact]
-    public void The_feature_is_on_when_either_is_set_up_and_off_when_neither_is()
-    {
-        Preferred(Gemini(Replying(HttpStatusCode.OK, "{}")), new FakeFallback { IsEnabled = false }).IsEnabled.Should().BeTrue();
-        Preferred(Gemini(Replying(HttpStatusCode.OK, "{}"), new GeminiOptions()), new FakeFallback { IsEnabled = true }).IsEnabled.Should().BeTrue();
-        Preferred(Gemini(Replying(HttpStatusCode.OK, "{}"), new GeminiOptions()), new FakeFallback { IsEnabled = false }).IsEnabled.Should().BeFalse();
     }
 }
