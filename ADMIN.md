@@ -352,3 +352,21 @@ Admin actions are recorded in the API's logs (Render → Logs) with your email a
   are never used by the deployed site.
 - If you change `src/content.config.ts` in the portfolio, update the matching rules in
   `src/Articles.Application/Portfolio/PortfolioContent.cs` and `admin/src/portfolio/schema.ts`.
+
+## Better wording for "Improve text with AI": a free Google Gemini key (optional, about 5 minutes)
+
+"Improve text with AI" works with the Cloudflare account above, but its small model writes plain sentences. Google's Gemini writes
+noticeably better English and Urdu and has a free tier. Without a key nothing changes; with one, Gemini is used first and Cloudflare
+answers if Google cannot.
+
+1. Open <https://aistudio.google.com/apikey> and sign in with a Google account.
+2. Choose **Create API key**. If it asks you to **enable billing**, add a **card**, or **buy credits**, stop: do not continue (this
+   project is free-only). A free key shows the **Free tier** plan next to the key, under *Usage and billing*.
+3. On Render, open the **articles-api** service, then **Environment**, and add **`Gemini__ApiKey`** with the key as its value. Save;
+   Render restarts the API.
+4. Optional: add **`Gemini__Model`** to pick another free Flash model. The default is `gemini-2.5-flash`. If Google renames or
+   retires it, the error under the dialog says so, and this is where you change it.
+
+Notes: on the free tier Google may use what it receives to improve its products, so only text you are about to publish should go
+through it. Never put the key in the repository or in chat. To switch it off, delete `Gemini__ApiKey`.
+

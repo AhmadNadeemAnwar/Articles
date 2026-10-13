@@ -92,7 +92,7 @@ public sealed partial class TextImprovementService : ITextImprovementService
     public async Task<ImprovedTextDto> ImproveAsync(string admin, ImproveTextRequest request, CancellationToken ct = default)
     {
         if (!_model.IsEnabled)
-            throw new DomainException("The AI is not set up yet. It uses the same Cloudflare settings as picture generation. See ADMIN.md.");
+            throw new DomainException("The AI is not set up yet. It needs a free Gemini key, or the Cloudflare settings used for pictures. See ADMIN.md.");
 
         var units = request.Units ?? [];
         if (units.Count == 0 || units.All(string.IsNullOrWhiteSpace)) throw new DomainException("There is no text to improve yet.");

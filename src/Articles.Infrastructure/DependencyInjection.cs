@@ -61,8 +61,15 @@ public static class DependencyInjection
 
         services.Configure<ImageGenerationOptions>(configuration.GetSection(ImageGenerationOptions.SectionName));
         services.AddHttpClient<IImageGenerator, CloudflareImageGenerator>();
-        services.AddHttpClient<Articles.Application.Site.IThemeAi, CloudflareThemeAi>();
-        services.AddHttpClient<Articles.Application.Posts.ITextModel, CloudflareThemeAi>();
+        services.AddHttpClient<CloudflareThemeAi>();
+        services.AddTransient<Articles.Application.Site.IThemeAi>(sp => sp.GetRequiredService<CloudflareThemeAi>());
+
+        // "Improve text with AI" prefers Google's Gemini (free tier) when its key is set, and falls back to the Cloudflare model.
+        services.Configure<GeminiOptions>(configuration.GetSection(GeminiOptions.SectionName));
+        services.AddHttpClient<GeminiTextModel>();
+        services.AddTransient<Articles.Application.Posts.ITextModel>(sp => new PreferredTextModel(
+            sp.GetRequiredService<GeminiTextModel>(), sp.GetRequiredService<CloudflareThemeAi>(),
+            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PreferredTextModel>>()));
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
