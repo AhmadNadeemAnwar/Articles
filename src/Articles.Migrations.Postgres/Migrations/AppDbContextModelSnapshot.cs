@@ -452,6 +452,41 @@ namespace Articles.Migrations.Postgres.Migrations
                     b.ToTable("tag_follows", (string)null);
                 });
 
+            modelBuilder.Entity("Articles.Domain.Entities.TextImprovement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Admin")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ImprovedJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OriginalJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId", "CreatedAt");
+
+                    b.ToTable("text_improvements", (string)null);
+                });
+
             modelBuilder.Entity("Articles.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -655,6 +690,17 @@ namespace Articles.Migrations.Postgres.Migrations
                     b.Navigation("Tag");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Articles.Domain.Entities.TextImprovement", b =>
+                {
+                    b.HasOne("Articles.Domain.Entities.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("Articles.Domain.Entities.UserFollow", b =>

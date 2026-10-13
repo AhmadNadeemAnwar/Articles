@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import type { Editor } from '@tiptap/react'
 import { api } from '../api/client'
 import { MAX_CHECK_CHARACTERS, afterApplying, buildTextMap, summary, toDocRange, toSuggestions } from '../posts/grammar'
@@ -6,7 +7,7 @@ import type { DocNode, Suggestion } from '../posts/grammar'
 import { ErrorNote } from './ui'
 
 /** Checks one text section for spelling and grammar. Nothing changes until the writer accepts a suggestion. */
-export function GrammarPanel({ editor }: { editor: Editor }) {
+export function GrammarPanel({ editor, children }: { editor: Editor; children?: ReactNode }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null)
@@ -71,6 +72,7 @@ export function GrammarPanel({ editor }: { editor: Editor }) {
         <button type="button" className="btn btn--small" disabled={busy} onClick={check}>
           {busy ? 'Checking…' : 'Check grammar'}
         </button>
+        {children}
         {suggestions && !busy && <span className="field__hint" role="status">{summary(suggestions.length)}</span>}
       </div>
 

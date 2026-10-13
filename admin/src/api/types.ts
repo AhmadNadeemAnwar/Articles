@@ -228,6 +228,22 @@ export interface PortfolioEntry {
   body: string
 }
 
+/** What "Improve text with AI" sends back: the same lines, reworded. */
+export interface ImprovedText {
+  units: string[]
+  changed: number
+  usedToday: number
+  dailyLimit: number
+}
+
+/** A text section as it was before the writer applied the AI's version, kept exactly (the editor's own JSON). */
+export interface SavedOriginal {
+  id: string
+  createdAt: string
+  originalJson: string
+  improvedJson: string
+}
+
 /** The note shown at the end of every post. Empty text means there is none. */
 export interface GlobalNote {
   text: string

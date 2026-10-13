@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, assetUrl } from '../api/client'
 import type { PostStatus } from '../api/types'
 import type { Category, PostRevisionDetail } from '../api/types'
+import { OriginalTexts } from '../components/OriginalTexts'
 import { RevisionHistory } from '../components/RevisionHistory'
 import { SectionList } from '../components/SectionList'
 import { TagInput } from '../components/TagInput'
@@ -347,7 +348,7 @@ export function PostEditPage() {
       <input className="writer__title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" aria-label="Title" maxLength={160} />
       <input className="writer__subtitle" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Add a subtitle…" aria-label="Subtitle" maxLength={300} />
 
-      <SectionList sections={sections} onChange={setSections} />
+      <SectionList sections={sections} onChange={setSections} postId={postId} />
 
       <section className="panel writer__details">
         <div className="field">
@@ -380,6 +381,7 @@ export function PostEditPage() {
           <p className="field__hint">Type a topic and press Enter. Topics are how readers find this post.</p>
         </div>
         {postId && <RevisionHistory postId={postId} onRestore={restoreRevision} />}
+        {postId && <OriginalTexts postId={postId} />}
       </section>
 
       <div className="actionbar" role="group" aria-label="Post actions">

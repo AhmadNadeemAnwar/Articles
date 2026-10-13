@@ -18,7 +18,7 @@ type Update = (change: (sections: Section[]) => Section[]) => void
 
 const ADDABLE: SectionType[] = ['text', 'image', 'references']
 
-export function SectionList({ sections, onChange }: { sections: Section[]; onChange: Update }) {
+export function SectionList({ sections, onChange, postId = null }: { sections: Section[]; onChange: Update; postId?: string | null }) {
   const confirm = useConfirm()
 
   const edit = (key: string, change: (section: Section) => Section) => onChange((current) => updateSection(current, key, change))
@@ -55,7 +55,7 @@ export function SectionList({ sections, onChange }: { sections: Section[]; onCha
             </header>
 
             {section.type === 'text' && (
-              <RichEditor initialContent={section.doc} onChange={(doc) => edit(section.key, (s) => (s.type === 'text' ? { ...s, doc } : s))} />
+              <RichEditor postId={postId} initialContent={section.doc} onChange={(doc) => edit(section.key, (s) => (s.type === 'text' ? { ...s, doc } : s))} />
             )}
             {section.type === 'image' && (
               <ImageEditor section={section} onChange={(change) => edit(section.key, (s) => (s.type === 'image' ? { ...s, ...change } : s))} />

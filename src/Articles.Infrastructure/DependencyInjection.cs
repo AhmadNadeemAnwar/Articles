@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<IEngagementRepository, EngagementRepository>();
         services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
+        services.AddScoped<ITextImprovementRepository, TextImprovementRepository>();
         services.AddScoped<IReactionRepository, ReactionRepository>();
         services.AddScoped<IActivityLog, ActivityLog>();
         services.AddScoped<ISiteRepository, SiteRepository>();
@@ -62,6 +63,7 @@ public static class DependencyInjection
         services.Configure<ImageGenerationOptions>(configuration.GetSection(ImageGenerationOptions.SectionName));
         services.AddHttpClient<IImageGenerator, CloudflareImageGenerator>();
         services.AddHttpClient<Articles.Application.Site.IThemeAi, CloudflareThemeAi>();
+        services.AddHttpClient<Articles.Application.Posts.ITextModel, CloudflareThemeAi>();
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();

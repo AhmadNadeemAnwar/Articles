@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Articles.Application.Posts;
 using Articles.Application.Site;
 using Articles.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -12,9 +13,9 @@ namespace Articles.Infrastructure.Images;
 /// Asks a text model on Cloudflare Workers AI, with the same account and token as picture generation
 /// and on the same free daily allowance (a short answer costs very little of it).
 /// </summary>
-public sealed class CloudflareThemeAi : IThemeAi
+public sealed class CloudflareThemeAi : IThemeAi, ITextModel
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(40);
+    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(85);
 
     private readonly HttpClient _http;
     private readonly ImageGenerationOptions _options;
@@ -32,7 +33,10 @@ public sealed class CloudflareThemeAi : IThemeAi
     private string AccountId => _options.AccountId.Trim();
     private string ApiToken => _options.ApiToken.Trim();
 
-    public async Task<string> AskAsync(string instruction, string request, CancellationToken ct = default)
+    public Task<string> AskAsync(string instruction, string request, CancellationToken ct = default) =>
+        CompleteAsync(instruction, request, 200, 1.0, ct);
+
+    public async Task<string> CompleteAsync(string instruction, string request, int maxTokens, double temperature, CancellationToken ct = default)
     {
         if (!CloudflareImageGenerator.IsValidAccountId(AccountId))
             throw new DomainException("The Cloudflare account ID on the server looks wrong. Check ImageGeneration__AccountId on Render.");
@@ -46,8 +50,8 @@ public sealed class CloudflareThemeAi : IThemeAi
             var payload = new
             {
                 messages = new object[] { new { role = "system", content = instruction }, new { role = "user", content = request } },
-                max_tokens = 200,
-                temperature = 1.0,
+                max_tokens = maxTokens,
+                temperature,
             };
             using var message = new HttpRequestMessage(HttpMethod.Post, url) { Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json") };
             message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiToken);

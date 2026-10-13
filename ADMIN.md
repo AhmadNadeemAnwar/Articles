@@ -181,6 +181,8 @@ activated for sending).
 ## Picture generation (optional, about 10 minutes)
 
 > The same Cloudflare account ID and token also switch on **Amaze with AI** (Site → Your own colours), where an AI proposes a header, links and page colour for you to keep or reject. It uses a small text model on the same free daily allowance and is limited to 20 goes a day. Nothing more to set up.
+>
+> The same account also powers **Improve text with AI** in the post editor, which rewords a section and keeps your original (in the post's *Original texts* list). It shares the 20-goes-a-day limit of its own and needs nothing more.
 
 The editor can make a picture from a description, on Cloudflare's **free** Workers AI allowance
 (10,000 "neurons" a day, which is well over 20 pictures). Until the steps below are done, the

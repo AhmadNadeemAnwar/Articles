@@ -5,14 +5,17 @@ import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import { GrammarPanel } from './GrammarPanel'
+import { ImprovePanel } from './ImprovePanel'
 
 interface Props {
   /** Stored ProseMirror JSON, or null for a new post. */
   initialContent: string | null
   onChange: (contentJson: string) => void
+  /** The saved post, or null before it has been saved once. Needed to keep the original when the AI's text is applied. */
+  postId?: string | null
 }
 
-export function RichEditor({ initialContent, onChange }: Props) {
+export function RichEditor({ initialContent, onChange, postId = null }: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] } }),
@@ -40,7 +43,9 @@ export function RichEditor({ initialContent, onChange }: Props) {
     <>
       <Toolbar editor={editor} />
       <EditorContent editor={editor} className="prose" />
-      <GrammarPanel editor={editor} />
+      <GrammarPanel editor={editor}>
+        <ImprovePanel editor={editor} postId={postId} />
+      </GrammarPanel>
     </>
   )
 }
