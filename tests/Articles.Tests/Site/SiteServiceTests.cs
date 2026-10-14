@@ -565,4 +565,32 @@ public class SiteServiceTests : IDisposable
 
         saved.Text.Should().Be("<b>Hi</b> <script>x</script>", "the site shows it as text, never as markup");
     }
+
+    // ---- What the database can hold ---------------------------------------------------------------
+
+    [Fact]
+    public void Every_setting_the_site_saves_fits_the_column_it_is_stored_in()
+    {
+        // The note is the longest setting. Postgres refuses a value longer than the column (SQLite does not), which is
+        // how a note of a few hundred characters once failed to save in production while every test here passed.
+        SiteService.MaxNoteLength.Should().BeLessThanOrEqualTo(Articles.Domain.Entities.SiteSetting.MaxValueLength);
+        ThemeColors.Store(new ThemeColorsDto("#000000", "#ffffff", "#123456")).Length.Should().BeLessThanOrEqualTo(Articles.Domain.Entities.SiteSetting.MaxValueLength);
+    }
+
+    [Fact]
+    public async Task A_note_longer_than_200_characters_is_saved_and_read_back_whole()
+    {
+        var text = string.Join(' ', Enumerable.Repeat("The articles shared here reflect my own insights.", 15));
+
+        (await _site.SaveNoteAsync(new SaveGlobalNoteRequest(text), Owner)).Text.Should().Be(text);
+        (await _site.GetPublicAsync()).Note.Should().Be(text);
+    }
+
+    [Fact]
+    public void A_setting_too_long_for_its_column_is_refused_before_it_reaches_the_database()
+    {
+        var act = () => new Articles.Domain.Entities.SiteSetting("key", new string('x', Articles.Domain.Entities.SiteSetting.MaxValueLength + 1));
+
+        act.Should().Throw<DomainException>();
+    }
 }

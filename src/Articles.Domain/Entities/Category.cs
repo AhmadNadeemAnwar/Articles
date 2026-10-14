@@ -49,7 +49,9 @@ public class Category : BaseEntity
 public class SiteSetting
 {
     public const int MaxKeyLength = 60;
-    public const int MaxValueLength = 200;
+
+    /// <summary>Room for the longest setting, the note shown on every post (1,000 characters), with space to spare.</summary>
+    public const int MaxValueLength = 2000;
 
     public string Key { get; private set; } = null!;
     public string Value { get; private set; } = null!;
@@ -59,8 +61,13 @@ public class SiteSetting
     public SiteSetting(string key, string value)
     {
         Key = key;
-        Value = value;
+        Value = Checked(value);
     }
 
-    public void Set(string value) => Value = value;
+    public void Set(string value) => Value = Checked(value);
+
+    // Checked here as well as by the database, because the SQLite used in tests does not enforce column lengths and
+    // Postgres in production does: a value too long for the column must fail the same way everywhere.
+    private static string Checked(string value) =>
+        value.Length <= MaxValueLength ? value : throw new DomainException($"A site setting can be at most {MaxValueLength} characters.");
 }

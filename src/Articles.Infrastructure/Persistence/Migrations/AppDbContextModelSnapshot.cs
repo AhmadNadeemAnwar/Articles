@@ -313,7 +313,7 @@ namespace Articles.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Key");
