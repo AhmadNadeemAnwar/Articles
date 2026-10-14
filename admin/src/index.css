@@ -9,7 +9,7 @@
 
   --text: #1c1e21;
   --text-muted: #5c5f66;
-  --text-faint: #8a8d93;
+  --text-faint: #63666d;
 
   --chrome: #202327;
   --chrome-raised: #2c3036;
@@ -21,6 +21,9 @@
   --accent-hover: #0c447c;
   --accent-soft: #e6f1fb;
   --accent-chrome: #6fa8e0;
+  /* Text on a filled accent button: white on the deep blue, dark on the light blue of dark mode. */
+  --on-accent: #ffffff;
+  --on-bad: #ffffff;
 
   --good: #1d6b43;
   --good-soft: #e3f2ea;
@@ -45,7 +48,7 @@
 
     --text: #ececee;
     --text-muted: #a3a6ac;
-    --text-faint: #77797f;
+    --text-faint: #8f9298;
 
     --chrome: #0b0c0e;
     --chrome-raised: #18191c;
@@ -54,6 +57,8 @@
     --accent: #6fa8e0;
     --accent-hover: #8fbeeb;
     --accent-soft: #17293c;
+    --on-accent: #0b1220;
+    --on-bad: #1a0c09;
 
     --good: #6fcf9b;
     --good-soft: #15291f;
@@ -125,19 +130,19 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, .btn:focus-vi
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn--small { padding: 0.2rem 0.7rem; font-size: 0.82rem; }
 .btn--block { width: 100%; padding: 0.6rem; }
-.btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn--primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn--primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
 .btn--danger { color: var(--bad); }
 .btn--danger:hover:not(:disabled) { border-color: var(--bad); color: var(--bad); }
-.btn--danger-solid { background: var(--bad); border-color: var(--bad); color: #fff; }
-.btn--danger-solid:hover:not(:disabled) { color: #fff; filter: brightness(1.1); }
+.btn--danger-solid { background: var(--bad); border-color: var(--bad); color: var(--on-bad); }
+.btn--danger-solid:hover:not(:disabled) { color: var(--on-bad); filter: brightness(1.1); }
 .btn--on-dark { background: transparent; color: var(--chrome-text); border-color: var(--chrome-border); }
 .btn--on-dark:hover:not(:disabled) { color: var(--accent-chrome); border-color: var(--accent-chrome); }
 
 .field { margin-bottom: 1rem; }
 .field label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem; }
 .field--check label { color: var(--text); font-size: 0.95rem; }
-.field__hint { font-size: 0.78rem; color: var(--text-faint); margin: 0.3rem 0 0; }
+.field__hint { font-size: 0.8rem; color: var(--text-faint); margin: 0.3rem 0 0; }
 
 /* ---- Sign-in ---------------------------------------------------------------------------------- */
 
@@ -197,7 +202,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, .btn:focus-vi
 .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1rem; }
 .tile__value { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.02em; }
 .tile__label { font-size: 0.82rem; color: var(--text-muted); }
-.tile__hint { font-size: 0.75rem; color: var(--text-faint); }
+.tile__hint { font-size: 0.8rem; color: var(--text-faint); }
 
 .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1.25rem; }
 .toplist { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -213,7 +218,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, .btn:focus-vi
 
 .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 0.75rem; }
 .table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.table th { text-align: left; font-weight: 500; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.table th { text-align: left; font-weight: 500; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .table td { padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
 .table tr:last-child td { border-bottom: 0; }
 .table--tight td { padding: 0.4rem 0.6rem; }
@@ -221,7 +226,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, .btn:focus-vi
 .actions { text-align: right; white-space: nowrap; }
 .actions > * + * { margin-left: 0.4rem; }
 .cell-title { font-weight: 500; }
-.cell-sub { font-size: 0.78rem; color: var(--text-faint); margin-top: 0.15rem; }
+.cell-sub { font-size: 0.8rem; color: var(--text-faint); margin-top: 0.15rem; }
 .is-busy { opacity: 0.55; pointer-events: none; }
 
 .filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
@@ -234,7 +239,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, .btn:focus-vi
 .inline-form input { max-width: 14rem; padding: 0.3rem 0.6rem; }
 .actions select { width: auto; padding: 0.25rem 0.5rem; }
 
-.badge { display: inline-block; font-size: 0.74rem; padding: 0.1rem 0.55rem; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--text-muted); }
+.badge { display: inline-block; font-size: 0.8rem; padding: 0.1rem 0.55rem; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--text-muted); }
 .badge--good { color: var(--good); background: var(--good-soft); border-color: transparent; }
 .badge--warn { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
 .badge--bad { color: var(--bad); background: var(--bad-soft); border-color: transparent; }
@@ -385,7 +390,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, .btn:focus-vi
 .section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0 1.1rem 1.1rem; }
 .section:focus-within { border-color: var(--border-strong); }
 .section__head { display: flex; align-items: center; gap: 0.25rem; padding: 0.55rem 0; }
-.section__label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
+.section__label { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
 .section__tool { border: 1px solid transparent; background: none; border-radius: 6px; min-width: 2rem; height: 2rem; color: var(--text-muted); font: inherit; cursor: pointer; }
 .section__tool:hover:not(:disabled) { background: var(--bg-subtle); color: var(--text); }
 .section__tool:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

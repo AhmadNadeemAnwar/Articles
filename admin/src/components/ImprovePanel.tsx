@@ -6,6 +6,19 @@ import { applyUnits, chunkUnits, collectUnits, formattedBlocks, MAX_IMPROVE_CHAR
 import type { DocNode } from '../posts/improve'
 import { ErrorNote } from './ui'
 
+/**
+ * Whether the AI is set up. Asked once per visit and shared by every text section, rather than once per section. A failed
+ * answer is not remembered, so the next editor that opens asks again.
+ */
+let availability: Promise<boolean> | null = null
+function aiAvailable(): Promise<boolean> {
+  availability ??= api.improveStatus().then((s) => s.enabled).catch(() => {
+    availability = null
+    return false
+  })
+  return availability
+}
+
 interface Proposal {
   /** The section as it is now, as written. */
   original: DocNode
@@ -30,7 +43,7 @@ export function ImprovePanel({ editor, onImproved }: { editor: Editor; onImprove
 
   useEffect(() => {
     let cancelled = false
-    api.improveStatus().then((s) => { if (!cancelled) setEnabled(s.enabled) }).catch(() => { if (!cancelled) setEnabled(false) })
+    aiAvailable().then((on) => { if (!cancelled) setEnabled(on) })
     return () => { cancelled = true }
   }, [])
 
