@@ -23,6 +23,8 @@ export function RichEditor({ initialContent, onChange, onImproved }: Props) {
       Link.configure({ openOnClick: false, autolink: true }),
     ],
     content: initialContent ? safeParse(initialContent) : '',
+    // The writing area is a plain editable box to the browser; this is what a screen reader announces for it.
+    editorProps: { attributes: { 'aria-label': 'Post text', 'aria-multiline': 'true' } },
     onUpdate: ({ editor }) => onChange(JSON.stringify(editor.getJSON())),
   })
 

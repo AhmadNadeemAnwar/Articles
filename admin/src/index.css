@@ -472,11 +472,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, .btn:focus-vi
 .custom-theme__pickers input[type='color'] { width: 3.25rem; height: 2.25rem; padding: 2px; flex: none; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); cursor: pointer; }
 .panel textarea { width: 100%; font: inherit; resize: vertical; }
 .note-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.6rem; }
-.note-actions__over { color: var(--danger); }
+.note-actions__over { color: var(--bad); }
 .custom-theme__note { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
 .btn--ai { justify-self: start; border-color: transparent; color: #fff; font-weight: 600; background: linear-gradient(135deg, #6d28d9, #be185d); }
 .btn--ai:hover:not(:disabled) { border-color: transparent; color: #fff; filter: brightness(1.12); }
-.custom-theme__problem { margin: 0; font-size: 0.85rem; color: var(--danger); }
+.custom-theme__problem { margin: 0; font-size: 0.85rem; color: var(--bad); }
 @media (max-width: 720px) { .custom-theme__body { grid-template-columns: minmax(0, 1fr); } }
 
 /* A small mock of the public site. Its colours come from the picked pair, set as variables on the element itself. */

@@ -23,6 +23,12 @@ function saveAsFile(name: string, text: string) {
   URL.revokeObjectURL(url)
 }
 
+/** " and its comment" / " and all 3 of its comments" / nothing when there are none. */
+export function commentsClause(count: number): string {
+  if (count <= 0) return ''
+  return count === 1 ? ' and its comment' : ` and all ${formatNumber(count)} of its comments`
+}
+
 export function PostsPage() {
   const confirm = useConfirm()
   const notify = useToast()
@@ -122,7 +128,7 @@ export function PostsPage() {
   async function remove(post: AdminPost) {
     const ok = await confirm({
       title: 'Delete this post for good?',
-      message: <>“{post.title}” and all {formatNumber(post.comments)} of its comments will be permanently deleted. This cannot be undone.</>,
+      message: <>“{post.title}”{commentsClause(post.comments)} will be permanently deleted. This cannot be undone.</>,
       confirmLabel: 'Delete permanently',
       danger: true,
     })

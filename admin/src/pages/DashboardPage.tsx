@@ -48,20 +48,31 @@ export function DashboardPage() {
   )
 }
 
+/** "1 view", "14 views", "1 clap". */
+export function countLabel(count: number, metric: 'views' | 'claps'): string {
+  return `${formatNumber(count)} ${count === 1 ? metric.slice(0, -1) : metric}`
+}
+
+/** Only posts that have any of the metric belong in a "most" list; a row of zeros says nothing. */
+export function withAny(posts: TopPost[], metric: 'views' | 'claps'): TopPost[] {
+  return posts.filter((post) => post[metric] > 0)
+}
+
 function TopList({ title, posts, metric }: { title: string; posts: TopPost[]; metric: 'views' | 'claps' }) {
+  const shown = withAny(posts, metric)
   return (
     <section className="panel">
       <h2>{title}</h2>
-      {posts.length === 0 ? (
-        <p className="muted">Nothing published yet.</p>
+      {shown.length === 0 ? (
+        <p className="muted">{metric === 'views' ? 'No views yet.' : 'No claps yet.'}</p>
       ) : (
         <ol className="toplist">
-          {posts.map((post) => {
+          {shown.map((post) => {
             const url = publicPostUrl(post.slug)
             return (
               <li key={post.id}>
                 {url ? <a href={url} target="_blank" rel="noopener noreferrer">{post.title}</a> : <span>{post.title}</span>}
-                <span className="muted">{formatNumber(post[metric])} {metric}</span>
+                <span className="muted">{countLabel(post[metric], metric)}</span>
               </li>
             )
           })}
@@ -101,7 +112,7 @@ function BarChart({ days }: { days: DailyCount[] }) {
         <text x={0} y={height + 14} className="axis">{days[0]?.date}</text>
         <text x={width} y={height + 14} textAnchor="end" className="axis">{days[days.length - 1]?.date}</text>
       </svg>
-      <figcaption className="muted">{total === 0 ? 'No posts published in this period.' : `${total} published in total; the tallest day had ${max}.`}</figcaption>
+      <figcaption className="muted">{total === 0 ? 'No posts published in this period.' : `${total} published in the last ${days.length} days; the busiest day had ${max}.`}</figcaption>
     </figure>
   )
 }
