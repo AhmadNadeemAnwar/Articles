@@ -55,6 +55,8 @@ export function Layout() {
         <div className="footer__inner">
           <span>Articles by Ahmad Nadeem</span>
           <nav aria-label="Site">
+            {/* A separate page outside the reading app, so a plain link that loads it fresh. */}
+            <a href="/play/">Bored? Play a game</a>
             <Link to="/privacy">Privacy</Link>
             {PORTFOLIO_URL && <a href={PORTFOLIO_URL}>About the author</a>}
           </nav>

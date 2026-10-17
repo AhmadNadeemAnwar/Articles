@@ -37,6 +37,9 @@ public sealed class ReactionRepository : IReactionRepository
     public Task<PostViewStat?> FindStatAsync(Guid postId, int day, string country, string device, string source, bool returning, CancellationToken ct = default) =>
         _db.PostViewStats.FirstOrDefaultAsync(s => s.PostId == postId && s.Day == day && s.Country == country && s.Device == device && s.Source == source && s.Returning == returning, ct);
 
+    public Task<long> GetAllTimeViewsAsync(CancellationToken ct = default) =>
+        _db.Posts.SumAsync(p => (long)p.ViewCount, ct);
+
     public async Task AddStatAsync(PostViewStat stat, CancellationToken ct = default) =>
         await _db.PostViewStats.AddAsync(stat, ct);
 

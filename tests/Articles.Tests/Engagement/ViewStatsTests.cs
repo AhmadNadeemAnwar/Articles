@@ -181,6 +181,21 @@ public class ViewStatsTests : IDisposable
     }
 
     [Fact]
+    public async Task The_all_time_total_includes_readers_from_before_daily_figures_were_kept()
+    {
+        var post = await PublishedAsync("ada", "First");
+        var other = await PublishedAsync("bob", "Second");
+        await View(post, "a");
+        await View(other, "b");
+        // Readers counted before this release are only in each post's running total, not in the daily figures.
+        for (var i = 0; i < 5; i++) (await _fixture.Posts.GetByIdAsync(post))!.RegisterView();
+        await _fixture.Db.SaveChangesAsync();
+
+        (await _stats.GetAsync(post, 7)).Should().Match<ViewStatsDto>(s => s.Views == 1 && s.AllTime == 6);
+        (await _stats.GetAsync(null, 7)).Should().Match<ViewStatsDto>(s => s.Views == 2 && s.AllTime == 7);
+    }
+
+    [Fact]
     public async Task Days_outside_the_period_are_left_out()
     {
         var post = await PublishedAsync("ada", "First");

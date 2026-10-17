@@ -12,11 +12,13 @@ public sealed record PostViews(Guid PostId, string Title, string? Slug, int View
 
 /// <param name="Daily">One entry per day of the period, oldest first, including days with no readers.</param>
 /// <param name="TopPosts">The most read posts in the period; empty when looking at a single post.</param>
+/// <param name="AllTime">Every reader ever counted, including those from before daily figures were kept.</param>
 public sealed record ViewStatsDto(
     int Days, int Views, int Returning,
     IReadOnlyList<DayViews> Daily,
     IReadOnlyList<ViewShare> Countries, IReadOnlyList<ViewShare> Devices, IReadOnlyList<ViewShare> Sources,
-    IReadOnlyList<PostViews> TopPosts);
+    IReadOnlyList<PostViews> TopPosts,
+    long AllTime = 0);
 
 public interface IViewStatsService
 {
@@ -44,7 +46,7 @@ public sealed class ViewStatsService : IViewStatsService
     public async Task<ViewStatsDto> GetAsync(Guid? postId, int days, CancellationToken ct = default)
     {
         if (!Periods.Contains(days)) throw new DomainException($"Choose a period of {string.Join(", ", Periods)} days.");
-        if (postId is { } id && await _posts.GetByIdAsync(id, ct) is null) throw new NotFoundException("Post", id);
+        var single = postId is { } id ? await _posts.GetByIdAsync(id, ct) ?? throw new NotFoundException("Post", id) : null;
 
         var today = DateOnly.FromDateTime(_time.GetUtcNow().UtcDateTime).DayNumber;
         var from = today - days + 1;
@@ -75,6 +77,7 @@ public sealed class ViewStatsService : IViewStatsService
             Shares(stats.Select(s => (s.Country, s.Count))),
             Shares(stats.Select(s => (s.Device, s.Count))),
             Shares(stats.Select(s => (s.Source, s.Count))),
-            top);
+            top,
+            single?.ViewCount ?? await _views.GetAllTimeViewsAsync(ct));
     }
 }

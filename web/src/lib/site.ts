@@ -31,7 +31,7 @@ const CODE = /^[2-9a-hjkmnp-z]{5}$/
 const NAME_AND_CODE = /^(.+)-([2-9a-hjkmnp-z]{5})$/
 
 /** First parts of an address that already mean something else. A post never takes one of these as its first part. */
-export const RESERVED_SEGMENTS: readonly string[] = ['read', 'p', 'media', 'assets', 'tag', 'search', 'privacy', 'subscribe', 'unsubscribe', 'api', 'rss', 'sitemap', 'latest', 'admin']
+export const RESERVED_SEGMENTS: readonly string[] = ['read', 'p', 'media', 'assets', 'tag', 'search', 'privacy', 'subscribe', 'unsubscribe', 'api', 'rss', 'sitemap', 'latest', 'admin', 'play']
 
 /**
  * Where a post is read: /<category>/<name>/<code>, or /<name>/<code> with no category. A post with

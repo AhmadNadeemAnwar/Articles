@@ -49,7 +49,7 @@ const CODE = /^[2-9a-hjkmnp-z]{5}$/
 const NAME_AND_CODE = /^(.+)-([2-9a-hjkmnp-z]{5})$/
 
 /** First parts of an address that already mean something else; the site's own pages, never a category or a post. */
-export const RESERVED_SEGMENTS = ['read', 'p', 'media', 'assets', 'tag', 'search', 'privacy', 'subscribe', 'unsubscribe', 'api', 'rss', 'sitemap', 'latest', 'admin']
+export const RESERVED_SEGMENTS = ['read', 'p', 'media', 'assets', 'tag', 'search', 'privacy', 'subscribe', 'unsubscribe', 'api', 'rss', 'sitemap', 'latest', 'admin', 'play']
 
 const decode = (part) => {
   try {

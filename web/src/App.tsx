@@ -13,7 +13,13 @@ import { TagPage } from './pages/TagPage'
 
 function NotFound() {
   useTitle('Page not found')
-  return <main className="main"><EmptyState title="Page not found" /></main>
+  return (
+    <main className="main">
+      <EmptyState title="Page not found">
+        <p className="muted">While you are here: <a href="/play/">take a short break with a game</a>.</p>
+      </EmptyState>
+    </main>
+  )
 }
 
 // Readers have no accounts: there is nothing here to sign in to. Writing happens in the admin portal.

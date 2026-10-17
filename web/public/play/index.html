@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Catch the Ball · Articles | لکھت از احمد</title>
+    <meta name="description" content="Bored? Take a short break: catch the falling balls, dodge the hazards and beat your best score." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://articles.ahmadnadeem.dev/play/" />
+    <link rel="stylesheet" href="/play/game.css" />
+    <script src="/play/game.js" defer></script>
+  </head>
+  <body>
+<div id="stage">
+  <canvas id="game" aria-label="Catch the Ball game area"></canvas>
+
+  <header class="hud">
+    <a class="back-link" href="/" aria-label="Back to Articles">← Articles</a>
+    <div class="pill"><span>Score</span><b id="score">0</b></div>
+    <div class="pill"><span>Best</span><b id="best">0</b></div>
+    <div id="lives" class="lives" role="img" aria-label="3 lives left"></div>
+    <div class="spacer"></div>
+    <button id="muteBtn" class="icon-btn" type="button" aria-label="Mute sound"></button>
+    <button id="pauseBtn" class="icon-btn" type="button" aria-label="Pause game"></button>
+  </header>
+
+  <div class="under-hud">
+    <div id="combo" class="combo" hidden></div>
+    <div id="powers" class="powers" aria-live="polite"></div>
+  </div>
+
+  <section id="startCard" class="overlay">
+    <div class="card">
+      <h1>Catch the Ball</h1>
+      <p class="lede">Move the basket to catch falling balls. Run out of hearts and the game ends.</p>
+      <div class="label">Theme</div>
+      <div id="themes" class="themes" role="radiogroup" aria-label="Theme"></div>
+      <p id="themeNote" class="note" hidden></p>
+      <div class="label">Difficulty</div>
+      <div id="diffs" class="seg" role="radiogroup" aria-label="Difficulty"></div>
+      <button id="startBtn" class="btn" type="button">Play</button>
+      <p class="hint">Mouse, touch or arrow keys. P to pause.</p>
+    </div>
+  </section>
+
+  <section id="pauseCard" class="overlay" hidden>
+    <div class="card">
+      <h2>Paused</h2>
+      <div class="btn-row">
+        <button id="resumeBtn" class="btn" type="button">Resume</button>
+        <button id="quitBtn" class="btn plain" type="button">End game</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="overCard" class="overlay" hidden>
+    <div class="card">
+      <h2>Game over</h2>
+      <p id="overMeta" class="note"></p>
+      <div class="result"><span id="finalScore" class="big">0</span><span>points</span><span id="newBest" class="chip" hidden>New best</span></div>
+      <p id="unlockMsg" class="unlock" hidden></p>
+      <dl class="stats">
+        <div><dt>Caught</dt><dd id="sumCaught">0</dd></div>
+        <div><dt>Best combo</dt><dd id="sumCombo">0</dd></div>
+        <div><dt>Level</dt><dd id="sumLevel">1</dd></div>
+      </dl>
+      <div class="btn-row">
+        <button id="againBtn" class="btn" type="button">Play again</button>
+        <button id="menuBtn" class="btn plain" type="button">Change theme or difficulty</button>
+      </div>
+    </div>
+  </section>
+</div>
+  </body>
+</html>

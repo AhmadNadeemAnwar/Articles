@@ -166,7 +166,7 @@ public sealed class SiteService : ISiteService
     /// part of its posts' addresses (/life/a-post/k3x9p), so a category may not take one. Keep in step with the site's list.
     /// </summary>
     public static readonly IReadOnlyList<string> ReservedAddresses =
-        ["read", "p", "media", "assets", "tag", "search", "privacy", "subscribe", "unsubscribe", "api", "rss", "sitemap", "latest", "admin"];
+        ["read", "p", "media", "assets", "tag", "search", "privacy", "subscribe", "unsubscribe", "api", "rss", "sitemap", "latest", "admin", "play"];
 
     private readonly ISiteRepository _site;
     private readonly IUnitOfWork _unitOfWork;

@@ -244,6 +244,8 @@ export interface ViewStats {
   devices: ViewShare[]
   sources: ViewShare[]
   topPosts: { postId: string; title: string; slug: string | null; views: number }[]
+  /** Every reader ever counted, including those from before daily figures were kept. */
+  allTime: number
 }
 
 /** A reader's anonymous note after reacting to a post. `liked` holds choice keys such as "useful". */

@@ -54,7 +54,7 @@ export function ViewsPage() {
       <PageHeader title="Views" />
       <p className="muted">
         Readers per day, counted once a day per reader. Country, device and where readers came from are kept as totals only:
-        never an address, a name or a full link. Counting started when this page was added.
+        never an address, a name or a full link. Daily figures start on 17 October 2026; readers before that are in the all-time total.
       </p>
 
       <div className="filters">
@@ -78,6 +78,7 @@ export function ViewsPage() {
       {stats.data && (
         <>
           <div className="tiles">
+            <StatTile label="All time" value={formatNumber(stats.data.allTime)} hint="every reader ever counted" />
             <StatTile label="Readers" value={formatNumber(stats.data.views)} hint={`last ${stats.data.days} days`} />
             <StatTile label="New readers" value={formatNumber(stats.data.views - stats.data.returning)} hint="first time on that post" />
             <StatTile label="Returning" value={formatNumber(stats.data.returning)} hint={`${percent(stats.data.returning, total)}% came back another day`} />

@@ -26,6 +26,9 @@ public interface IReactionRepository
     Task<PostViewStat?> FindStatAsync(Guid postId, int day, string country, string device, string source, bool returning, CancellationToken ct = default);
     Task AddStatAsync(PostViewStat stat, CancellationToken ct = default);
 
+    /// <summary>Every reader ever counted on any post: the running total each post keeps, not the daily figures.</summary>
+    Task<long> GetAllTimeViewsAsync(CancellationToken ct = default);
+
     /// <summary>Every count from <paramref name="fromDay"/> on, for one post or (with null) all of them.</summary>
     Task<IReadOnlyList<PostViewStat>> GetStatsAsync(Guid? postId, int fromDay, CancellationToken ct = default);
 
