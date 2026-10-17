@@ -7,9 +7,10 @@
 # locked down: no inline script, no eval, and the only outside origin is Cloudflare's own Web
 # Analytics beacon, which Cloudflare injects automatically. Nothing may be framed in or out.
 # img-src allows any https host because authors may link cover images and avatars from anywhere.
+# frame-src 'self' lets a page show this site's own game page in a window; nothing from elsewhere can be framed in.
 
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://articles-api-jkvr.onrender.com https://cloudflareinsights.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://articles-api-jkvr.onrender.com https://cloudflareinsights.com; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
@@ -20,3 +21,11 @@
 # Filenames under /assets are content-hashed, so they can be cached forever.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# The game page is shown in a window on this site's own pages, so it may be framed by this site and by no other.
+# The general rules above say "never framed"; these replace them for the game only.
+/play/*
+  ! Content-Security-Policy
+  ! X-Frame-Options
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests
+  X-Frame-Options: SAMEORIGIN

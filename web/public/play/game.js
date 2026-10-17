@@ -1,4 +1,6 @@
 // Catch the Ball: a small canvas game. Everything runs in the browser; best scores stay on this device.
+// Shown inside the Articles site's game window, it leaves out its own way back: the window has a close button.
+if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embedded');
 (() => {
   const MUTE_KEY = 'catchBall.muted';
   const THEME_KEY = 'catchBall.theme';

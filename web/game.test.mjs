@@ -28,3 +28,24 @@ describe('the game page', () => {
     expect(html).toContain('<title>Catch the Ball · Articles')
   })
 })
+
+describe('the game in a window on the site', () => {
+  const headers = read('./public/_headers').split(String.fromCharCode(13)).join('')
+  const js = read('./public/play/game.js')
+
+  it('lets pages show only this site in a frame, and lets only this site frame the game', () => {
+    expect(headers).toMatch(/\/\*\n\s+Content-Security-Policy:[^\n]*frame-src 'self';[^\n]*frame-ancestors 'none'/)
+    expect(headers).toMatch(/\/play\/\*\n\s+! Content-Security-Policy\n\s+! X-Frame-Options\n\s+Content-Security-Policy:[^\n]*frame-ancestors 'self'[^\n]*\n\s+X-Frame-Options: SAMEORIGIN/)
+  })
+
+  it('still runs: the line it adds before the game ends its statement, so the two are not read as one', async () => {
+    const vm = await import('node:vm')
+    const calls = []
+    const sandbox = {
+      location: { search: '?embed=1' }, URLSearchParams,
+      document: { documentElement: { classList: { add: (c) => calls.push(c) } }, getElementById: () => { throw new Error('stop') } },
+    }
+    expect(() => new vm.Script(js).runInNewContext(sandbox)).toThrow('stop')
+    expect(calls).toEqual(['embedded'])
+  })
+})

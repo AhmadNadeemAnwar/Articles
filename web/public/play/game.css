@@ -149,3 +149,6 @@ p { margin: 0; }
 .back-link { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.75rem; border-radius: 999px;
   background: rgba(0, 0, 0, 0.35); color: #fff; font: 600 0.85rem system-ui, sans-serif; text-decoration: none; }
 .back-link:hover, .back-link:focus-visible { background: rgba(0, 0, 0, 0.55); }
+.embedded .back-link { display: none; }
+/* Room for the window's close button, which sits over the top-left corner. */
+.embedded .hud { padding-left: 3.4rem; }
