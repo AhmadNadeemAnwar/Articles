@@ -194,4 +194,31 @@ public class PostContentTests
 
         text.Should().NotContain("example.com").And.NotContain(ImageId);
     }
+
+    private static string SizedImage(object? size) =>
+        JsonSerializer.Serialize(new { type = "imageSection", attrs = new { imageId = ImageId, alt = "A chart", caption = "", size } });
+
+    [Theory]
+    [InlineData("small")]
+    [InlineData("medium")]
+    [InlineData("full")]
+    [InlineData(null)]
+    public void A_picture_can_be_shown_small_medium_or_full_width(string? size)
+    {
+        var act = () => PostContent.Validate(Sections(SizedImage(size)));
+
+        act.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData("huge")]
+    [InlineData("SMALL")]
+    [InlineData("50%")]
+    [InlineData(40)]
+    public void Any_other_picture_size_is_refused(object size)
+    {
+        var act = () => PostContent.Validate(Sections(SizedImage(size)));
+
+        act.Should().Throw<DomainException>().WithMessage("*small, medium or full width*");
+    }
 }

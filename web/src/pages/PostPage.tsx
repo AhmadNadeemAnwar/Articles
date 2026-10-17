@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { CopyLinkButton } from '../components/CopyLinkButton'
+import { FeedbackPrompt, feedbackHandled } from '../components/FeedbackPrompt'
 import { Reactions } from '../components/Reactions'
 import { RichText } from '../components/RichText'
 import { Avatar, EmptyState, Spinner, TagPill, formatDate } from '../components/ui'
@@ -17,6 +18,7 @@ export function PostPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { note } = useSite()
+  const [asking, setAsking] = useState(false)
 
   const loaded = useAsync(() => api.post(slug), [slug])
   const post = loaded.data
@@ -99,10 +101,12 @@ export function PostPage() {
         )}
 
         <div className="actionbar">
-          <Reactions postId={post.id} clapCount={post.clapCount} insightfulCount={post.insightfulCount} />
+          <Reactions postId={post.id} clapCount={post.clapCount} insightfulCount={post.insightfulCount}
+            onGiven={() => { if (!feedbackHandled(post.id)) setAsking(true) }} />
           <span className="actionbar__spacer" />
           <CopyLinkButton url={link} />
         </div>
+        {asking && <FeedbackPrompt postId={post.id} onDone={() => setAsking(false)} />}
       </article>
 
       {/* Beside the article on a wide screen, where there would otherwise be empty margin; below it on a narrow one. */}

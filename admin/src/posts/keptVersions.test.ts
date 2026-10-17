@@ -8,7 +8,7 @@ const IMAGE_ID = '0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11'
 const paragraph = (words: string) => ({ type: 'paragraph', content: [{ type: 'text', text: words }] })
 const docOf = (words: string) => JSON.stringify({ type: 'doc', content: [paragraph(words)] })
 const textSection = (words: string): Section => ({ key: `t-${words}`, type: 'text', doc: docOf(words), history: [], liveState: null })
-const imageSection = (): Section => ({ key: 'img', type: 'image', imageId: IMAGE_ID, alt: 'A chart', caption: '', width: null, height: null })
+const imageSection = (): Section => ({ key: 'img', type: 'image', imageId: IMAGE_ID, alt: 'A chart', caption: '', width: null, height: null, size: 'full' })
 const stored = (sections: Section[]) => JSON.parse(serializeContent(sections)) as { content: { type: string; textState?: string }[] }
 const texts = (section: Section) => (section.type === 'text' ? [...section.history.map((h) => [h.state, h.doc]), [section.liveState, section.doc]] : [])
 

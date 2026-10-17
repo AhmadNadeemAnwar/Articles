@@ -46,6 +46,9 @@ public static class PostContent
     /// <summary>Far larger than any picture the editor produces (it shrinks them to 1600), but small enough to be a real size.</summary>
     public const int MaxImageDimension = 20_000;
 
+    /// <summary>How wide a picture can show in the article. Full width is also what a picture with no size shows at.</summary>
+    public static readonly IReadOnlyList<string> ImageSizes = ["small", "medium", "full"];
+
     private const string NotADocument = "Post content must be a valid editor document.";
 
     public static void Validate(string contentJson)
@@ -158,6 +161,12 @@ public static class PostContent
         var height = Dimension(attrs, "height");
         if (width == Invalid || height == Invalid || (width is null) != (height is null))
             throw new DomainException("An image section has a size that is not valid. Upload the picture again.");
+
+        // How wide the picture shows: optional, and one of three. The picture itself is never resized.
+        var size = attrs.ValueKind == JsonValueKind.Object && attrs.TryGetProperty("size", out var sizeValue) ? sizeValue : default;
+        if (size.ValueKind != JsonValueKind.Undefined && size.ValueKind != JsonValueKind.Null
+            && !(size.ValueKind == JsonValueKind.String && ImageSizes.Contains(size.GetString())))
+            throw new DomainException("A picture can only be shown small, medium or full width.");
 
         if ((Text(attrs, "alt")?.Length ?? 0) > MaxCaptionLength || (Text(attrs, "caption")?.Length ?? 0) > MaxCaptionLength)
             throw new DomainException($"Image descriptions and captions can be at most {MaxCaptionLength} characters.");

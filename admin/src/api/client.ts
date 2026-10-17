@@ -2,7 +2,7 @@ import type { GrammarMatch } from '../posts/grammar'
 import type {
   ActivityEntry, AdminComment, AdminPost, AdminTag, Category, Collection, NotifyResult, Subscriber, SubscribersSummary, Frontmatter, Paged, PortfolioEntry, PortfolioStatus,
   PortfolioSummary, PostDraft, PostInput, PostRevision, PostRevisionDetail, PostStatus, PostTag, Profile, ProfileInput,
-  GeneratedImage, GenerationStatus, GlobalNote, ImprovedText, ThemeSuggestion, Session, SiteSettings, Stats, StoredImage,
+  GeneratedImage, GenerationStatus, GlobalNote, ImprovedText, ReaderFeedback, ThemeSuggestion, Session, SiteSettings, Stats, StoredImage,
 } from './types'
 
 // Empty in development (Vite proxies /api); the production build bakes in the API's absolute URL.
@@ -186,6 +186,9 @@ export const api = {
 
   comments: (pageNumber = 1) => request<Paged<AdminComment>>('GET', `/api/v1/admin/comments${query({ pageNumber, pageSize: 25 })}`),
   deleteComment: (id: string) => request<void>('DELETE', `/api/v1/admin/comments/${id}`),
+
+  feedback: (pageNumber = 1) => request<Paged<ReaderFeedback>>('GET', `/api/v1/admin/feedback${query({ pageNumber, pageSize: 25 })}`),
+  deleteFeedback: (id: string) => request<void>('DELETE', `/api/v1/admin/feedback/${id}`),
 
   tags: () => request<AdminTag[]>('GET', '/api/v1/admin/tags'),
   renameTag: (id: string, name: string) => request<AdminTag>('PUT', `/api/v1/admin/tags/${id}`, { name }),

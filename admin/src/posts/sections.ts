@@ -32,10 +32,17 @@ export type Section =
    */
   | { key: string; type: 'text'; doc: string; history: KeptVersion[]; liveState: string | null }
   /** `width` and `height` are the stored picture's size in pixels, or null for pictures added before sizes were kept. */
-  | { key: string; type: 'image'; imageId: string | null; alt: string; caption: string; width: number | null; height: number | null }
+  /** `size` is how wide the picture shows in the article; the picture itself is never changed, so nothing is lost. */
+  | { key: string; type: 'image'; imageId: string | null; alt: string; caption: string; width: number | null; height: number | null; size: ImageSize }
   | { key: string; type: 'references'; items: Reference[] }
 
 export type SectionType = Section['type']
+
+/** How wide a picture shows in the article. "full" is the article's width; phones always show pictures full width. */
+export type ImageSize = 'small' | 'medium' | 'full'
+export const IMAGE_SIZES: readonly ImageSize[] = ['small', 'medium', 'full']
+export const imageSizeLabels: Record<ImageSize, string> = { small: 'Small', medium: 'Medium', full: 'Full width' }
+const toImageSize = (value: unknown): ImageSize => (IMAGE_SIZES.includes(value as ImageSize) ? (value as ImageSize) : 'full')
 
 /** An earlier version of a text section: the editor's own JSON for it, and the state it is stored under. */
 export interface KeptVersion {
@@ -72,7 +79,7 @@ const newKey = () => `s${Date.now().toString(36)}${(counter++).toString(36)}`
 export function newSection(type: SectionType): Section {
   switch (type) {
     case 'text': return { key: newKey(), type, doc: EMPTY_DOC, history: [], liveState: null }
-    case 'image': return { key: newKey(), type, imageId: null, alt: '', caption: '', width: null, height: null }
+    case 'image': return { key: newKey(), type, imageId: null, alt: '', caption: '', width: null, height: null, size: 'full' }
     case 'references': return { key: newKey(), type, items: [{ title: '', url: '' }] }
   }
 }
@@ -150,7 +157,7 @@ export function parseContent(json: string | null | undefined): Section[] {
       const sized = width !== null && height !== null
       sections.push({
         key: newKey(), type: 'image', imageId: GUID.test(imageId) ? imageId : null, alt: text(attrs.alt), caption: text(attrs.caption),
-        width: sized ? width : null, height: sized ? height : null,
+        width: sized ? width : null, height: sized ? height : null, size: toImageSize(attrs.size),
       })
     } else if (raw.type === 'referencesSection') {
       const items = Array.isArray(attrs.items) ? attrs.items.filter(isObject).map((item) => ({ title: text(item.title), url: text(item.url) })) : []
@@ -195,6 +202,8 @@ export function serializeContent(sections: Section[]): string {
         attrs: {
           imageId: section.imageId, alt: section.alt.trim(), caption: section.caption.trim(),
           ...(width !== null && height !== null ? { width, height } : {}),
+          // Full width is what every picture was before sizes existed, so it is left out rather than stored.
+          ...(section.size !== 'full' ? { size: section.size } : {}),
         },
       })
     } else {

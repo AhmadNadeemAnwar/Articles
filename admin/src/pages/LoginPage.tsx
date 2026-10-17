@@ -30,7 +30,7 @@ export function LoginPage() {
 
   return (
     <main className="login">
-      <form className="login__card" onSubmit={submit}>
+      <form className="login__card" onSubmit={submit} aria-busy={busy}>
         <h1>Articles Admin</h1>
         <p className="muted">Sign in with your email and the 6-digit code from your authenticator app.</p>
 
@@ -38,7 +38,7 @@ export function LoginPage() {
 
         <div className="field">
           <label htmlFor="email">Email</label>
-          <input id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+          <input id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus disabled={busy} />
         </div>
 
         <div className="field">
@@ -53,6 +53,8 @@ export function LoginPage() {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             required
+            // Locked while the code is being checked: a code is single-use, so editing it mid-check would only confuse.
+            disabled={busy}
           />
         </div>
 

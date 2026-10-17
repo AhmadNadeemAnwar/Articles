@@ -45,6 +45,12 @@ export function PrivacyPage() {
             your random id against that article. Pressing the button again deletes it.
           </li>
           <li>
+            <strong>Feedback.</strong> After a reaction you may be offered a short card asking what you liked and for any
+            suggestion. If you send it, the site stores the choices you picked, your words and which article they are about.
+            No name, email or id is sent with it. Your browser remembers that you sent or closed the card, so it is not
+            offered again on that article.
+          </li>
+          <li>
             <strong>Reader counts.</strong> Opening an article adds one to its reader count, at most once a day. To
             avoid counting you twice, the same scrambled id is kept with the article for up to a day and then deleted.
             The count itself is just a number.

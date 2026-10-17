@@ -45,6 +45,7 @@ public static class Activity
     public const string NotifiedSubscribers = "Emailed subscribers about a post";
     public const string RemovedSubscriber = "Removed a subscriber";
     public const string GeneratedImage = "Generated a picture";
+    public const string DeletedFeedback = "Deleted reader feedback";
     public const string ImprovedText = "Asked the AI to improve text";
     public const string SavedGlobalNote = "Saved the note shown on every post";
     public const string RemovedGlobalNote = "Removed the note shown on every post";

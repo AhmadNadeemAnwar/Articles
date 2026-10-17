@@ -10,7 +10,7 @@ const IMAGE_ID = '0b6f8f0e-2f0b-4a53-9a3e-0e6a1f4f7c11'
 const paragraph = (words: string) => ({ type: 'paragraph', content: [{ type: 'text', text: words }] })
 const textSection = (words: string): Section => ({ key: `t-${words}`, type: 'text', doc: JSON.stringify({ type: 'doc', content: [paragraph(words)] }), history: [], liveState: null })
 const imageSection = (imageId: string | null = IMAGE_ID, size: { width: number | null; height: number | null } = { width: null, height: null }): Section =>
-  ({ key: 'img', type: 'image', imageId, alt: 'A chart', caption: 'Figure 1', ...size })
+  ({ key: 'img', type: 'image', imageId, alt: 'A chart', caption: 'Figure 1', size: 'full', ...size })
 const referencesSection = (...items: [string, string][]): Section => ({ key: 'refs', type: 'references', items: items.map(([title, url]) => ({ title, url })) })
 
 const stored = (sections: Section[]) => JSON.parse(serializeContent(sections)) as { type: string; content: { type: string; attrs?: Record<string, unknown>; content?: unknown[] }[] }
@@ -41,7 +41,7 @@ describe('serializeContent', () => {
 
   it('trims the spaces a writer leaves around captions, titles and links', () => {
     const body = stored([
-      { key: 'i', type: 'image', imageId: IMAGE_ID, alt: '  A chart ', caption: ' Figure 1  ', width: null, height: null },
+      { key: 'i', type: 'image', imageId: IMAGE_ID, alt: '  A chart ', caption: ' Figure 1  ', width: null, height: null, size: 'full' },
       referencesSection(['  The paper ', ' https://example.com '])
     ])
 
@@ -87,7 +87,7 @@ describe('picture sizes', () => {
 })
 
 describe('countUndescribedImages', () => {
-  const image = (alt: string, imageId: string | null = IMAGE_ID): Section => ({ key: `i-${alt}-${imageId}`, type: 'image', imageId, alt, caption: 'A caption is not a description', width: null, height: null })
+  const image = (alt: string, imageId: string | null = IMAGE_ID): Section => ({ key: `i-${alt}-${imageId}`, type: 'image', imageId, alt, caption: 'A caption is not a description', width: null, height: null, size: 'full' })
 
   it('counts pictures with no description, ignoring ones that have one', () => {
     expect(countUndescribedImages([image(''), image('   '), image('A chart of results'), textSection('words')])).toBe(2)
@@ -220,7 +220,7 @@ describe('findProblem', () => {
   })
 
   it('catches text that is too long for its field', () => {
-    expect(findProblem([{ key: 'i', type: 'image', imageId: IMAGE_ID, alt: 'x'.repeat(301), caption: '', width: null, height: null }])).toMatch(/300/)
+    expect(findProblem([{ key: 'i', type: 'image', imageId: IMAGE_ID, alt: 'x'.repeat(301), caption: '', width: null, height: null, size: 'full' }])).toMatch(/300/)
     expect(findProblem([referencesSection(['x'.repeat(201), ''])])).toMatch(/200/)
   })
 

@@ -8,6 +8,20 @@ const paragraph = (words: string) => ({ type: 'paragraph', content: [{ type: 'te
 const html = (body: unknown) => renderToStaticMarkup(<RichText contentJson={typeof body === 'string' ? body : JSON.stringify(body)} />)
 const sections = (...content: unknown[]) => ({ type: 'sections', content })
 
+describe('picture size', () => {
+  const picture = (size?: unknown) => sections({ type: 'imageSection', attrs: { imageId: IMAGE_ID, alt: 'A chart', caption: '', width: 1600, height: 900, ...(size === undefined ? {} : { size }) } })
+
+  it('shows a picture smaller when it was set small or medium, using the same full-size picture', () => {
+    expect(html(picture('small'))).toContain('class="prose__figure prose__figure--small"')
+    expect(html(picture('medium'))).toContain('class="prose__figure prose__figure--medium"')
+    expect(html(picture('small'))).toContain('width="1600"')
+  })
+
+  it('shows full width when no size, full, or something unknown was stored', () => {
+    for (const size of [undefined, 'full', 'huge', '"><script>']) expect(html(picture(size))).toContain('class="prose__figure"')
+  })
+})
+
 describe('earlier versions kept beside the improved text', () => {
   const text = (words: string, state?: string) => ({ type: 'textSection', ...(state ? { textState: state } : {}), content: [paragraph(words)] })
 

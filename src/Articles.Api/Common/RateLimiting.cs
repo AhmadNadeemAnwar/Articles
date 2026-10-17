@@ -50,6 +50,10 @@ public static class RateLimiting
         if (HttpMethods.IsPost(method) && path.Equals("/api/v1/subscribers", StringComparison.OrdinalIgnoreCase))
             return Fixed($"subscribe:{ip}", permits: 5, TimeSpan.FromHours(1));
 
+        // Feedback is anonymous, so each reader is held to a handful an hour; enough for honest use, too few to flood the list.
+        if (HttpMethods.IsPost(method) && path.StartsWith("/api/v1/posts/", StringComparison.OrdinalIgnoreCase) && path.EndsWith("/feedback", StringComparison.OrdinalIgnoreCase))
+            return Fixed($"feedback:{ip}", permits: 5, TimeSpan.FromHours(1));
+
         // The free grammar service allows about 20 checks a minute; staying under it keeps the whole site from being blocked.
         if (HttpMethods.IsPost(method) && path.Equals("/api/v1/admin/grammar/check", StringComparison.OrdinalIgnoreCase))
             return Fixed($"grammar:{ip}", permits: 15, TimeSpan.FromMinutes(1));

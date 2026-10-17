@@ -8,6 +8,7 @@ import { Spinner } from './components/ui'
 import { ActivityPage } from './pages/ActivityPage'
 import { CommentsPage } from './pages/CommentsPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { FeedbackPage } from './pages/FeedbackPage'
 import { LoginPage } from './pages/LoginPage'
 import { PortfolioEditPage } from './pages/PortfolioEditPage'
 import { PortfolioPage } from './pages/PortfolioPage'
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/posts/new" element={editor} />
               <Route path="/posts/:id/edit" element={editor} />
               <Route path="/comments" element={<CommentsPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/tags" element={<TagsPage />} />
               <Route path="/subscribers" element={<SubscribersPage />} />
               <Route path="/site" element={<SitePage />} />

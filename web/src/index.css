@@ -375,6 +375,24 @@ input:focus, textarea:focus, select:focus {
 .actionbar { display: flex; align-items: center; gap: 0.5rem; padding: 1.25rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 2.5rem 0; }
 .actionbar__spacer { flex: 1; }
 
+/* The small card offered after a reaction: what the reader liked, and any suggestion. It sits under the reactions and never covers the article. */
+.feedback { margin: -1.5rem 0 2.5rem; padding: 1rem 1.1rem; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-raised); box-shadow: var(--shadow); }
+.feedback:focus { outline: none; }
+.feedback:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.feedback__head { display: flex; align-items: flex-start; gap: 0.75rem; }
+.feedback__head h2 { flex: 1; margin: 0 0 0.75rem; font-size: 1rem; font-weight: 600; }
+.feedback__close { border: 0; background: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; padding: 0 0.25rem; cursor: pointer; }
+.feedback__close:hover { color: var(--text); }
+.feedback__chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.7rem; }
+.feedback__chip { border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--text); border-radius: 999px; padding: 0.3rem 0.8rem; font: inherit; font-size: 0.88rem; cursor: pointer; }
+.feedback__chip:hover { border-color: var(--accent); color: var(--accent); }
+.feedback__chip--on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.feedback__text { width: 100%; resize: vertical; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 0.55rem 0.7rem; }
+.feedback__actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.7rem; flex-wrap: wrap; }
+.feedback__note { font-size: 0.82rem; color: var(--text-muted); }
+.feedback__error { margin: 0.5rem 0 0; font-size: 0.88rem; color: var(--danger); }
+.feedback--sent p { margin: 0; color: var(--text); }
+
 /* ---- Comments ------------------------------------------------------------- */
 
 .comment { padding: 1rem 0; border-bottom: 1px solid var(--border); }
@@ -462,6 +480,10 @@ input:focus, textarea:focus, select:focus {
 
 .prose__figure { margin: 2em 0; }
 .prose__figure img { display: block; width: 100%; height: auto; }
+/* A smaller picture is the same full-quality file shown narrower, centred. On a phone every picture is full width again. */
+.prose__figure--medium { max-width: 65%; margin-left: auto; margin-right: auto; }
+.prose__figure--small { max-width: 40%; margin-left: auto; margin-right: auto; }
+@media (max-width: 640px) { .prose__figure--medium, .prose__figure--small { max-width: none; } }
 .prose__figure figcaption { margin-top: 0.6em; font-family: var(--font-ui); font-size: 0.85rem; line-height: 1.5; color: var(--text-muted); text-align: center; }
 
 .prose__references { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid var(--border); font-family: var(--font-ui); font-size: 0.95rem; line-height: 1.6; }

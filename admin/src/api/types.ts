@@ -228,6 +228,17 @@ export interface PortfolioEntry {
   body: string
 }
 
+/** A reader's anonymous note after reacting to a post. `liked` holds choice keys such as "useful". */
+export interface ReaderFeedback {
+  id: string
+  createdAt: string
+  postId: string
+  postTitle: string
+  postSlug: string | null
+  liked: string[]
+  text: string
+}
+
 /** What "Improve text with AI" sends back: the same lines, reworded. */
 export interface ImprovedText {
   units: string[]

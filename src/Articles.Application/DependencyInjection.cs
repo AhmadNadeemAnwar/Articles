@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IPortfolioService, PortfolioService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IImageGenerationService, ImageGenerationService>();
+        services.AddScoped<Articles.Application.Posts.IFeedbackService, Articles.Application.Posts.FeedbackService>();
         services.AddScoped<Articles.Application.Posts.ITextImprovementService, Articles.Application.Posts.TextImprovementService>();
         services.AddScoped<Articles.Application.Site.IThemeSuggestionService, Articles.Application.Site.ThemeSuggestionService>();
         services.AddScoped<ISiteService, SiteService>();

@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<IEngagementRepository, EngagementRepository>();
         services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
+        services.AddScoped<IFeedbackRepository, FeedbackRepository>();
         services.AddScoped<IReactionRepository, ReactionRepository>();
         services.AddScoped<IActivityLog, ActivityLog>();
         services.AddScoped<ISiteRepository, SiteRepository>();

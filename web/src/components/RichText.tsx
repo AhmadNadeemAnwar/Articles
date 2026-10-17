@@ -63,6 +63,11 @@ function renderChildren(nodes: Node[] | undefined, first?: Node): ReactNode {
   return nodes.map((node, index) => <RenderNode key={index} node={node} first={first} />)
 }
 
+/** The extra class for a picture shown smaller than the article's width; nothing for full width or a size it does not know. */
+export function figureSize(value: unknown): string {
+  return value === 'small' || value === 'medium' ? ` prose__figure--${value}` : ''
+}
+
 /** A stored size, if it is a believable one. Used only to hold a picture's place while it loads. */
 function dimension(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 20_000 ? value : undefined
@@ -124,7 +129,7 @@ function RenderNode({ node, first }: { node: Node; first?: Node }): ReactNode {
       const height = dimension(node.attrs?.height)
       const sized = width !== undefined && height !== undefined
       return (
-        <figure className="prose__figure">
+        <figure className={`prose__figure${figureSize(node.attrs?.size)}`}>
           <img
             src={storedImageUrl(imageId)}
             alt={text(node.attrs?.alt)}

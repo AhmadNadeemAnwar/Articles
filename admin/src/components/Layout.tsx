@@ -5,6 +5,7 @@ const links = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/posts', label: 'Posts' },
   { to: '/comments', label: 'Comments' },
+  { to: '/feedback', label: 'Feedback' },
   { to: '/tags', label: 'Topics' },
   { to: '/subscribers', label: 'Subscribers' },
   { to: '/site', label: 'Site' },

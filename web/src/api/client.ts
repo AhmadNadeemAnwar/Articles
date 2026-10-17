@@ -91,6 +91,10 @@ export const api = {
   reactions: (id: string) => request<ReactionState>('GET', `/api/v1/posts/${id}/reactions`, true),
 
   /** Gives the reaction, or takes it back if this browser already gave it. */
+  /** A reader's anonymous note after reacting: what they liked, and any suggestion. */
+  sendFeedback: (id: string, liked: string[], text: string) =>
+    request<void>('POST', `/api/v1/posts/${id}/feedback`, true, { liked, text }),
+
   toggleReaction: (id: string, kind: ReactionKind) =>
     request<ReactionState>('POST', `/api/v1/posts/${id}/reactions/${kind}`, true),
 

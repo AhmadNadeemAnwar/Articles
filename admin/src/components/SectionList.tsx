@@ -3,7 +3,7 @@ import type { ChangeEvent } from 'react'
 import { imageUrl } from '../api/client'
 import { uploadImage } from '../posts/imageUpload'
 import {
-  MAX_CAPTION, MAX_REFERENCES, MAX_REFERENCE_TITLE, MAX_SECTIONS, hasContent, moveSection, newSection,
+  IMAGE_SIZES, MAX_CAPTION, MAX_REFERENCES, imageSizeLabels, MAX_REFERENCE_TITLE, MAX_SECTIONS, hasContent, moveSection, newSection,
   removeSection, sectionLabels, updateSection, withImprovement, withoutHistory,
 } from '../posts/sections'
 import type { Reference, Section, SectionType } from '../posts/sections'
@@ -140,7 +140,7 @@ function ImageEditor({ section, onChange }: { section: ImageSection; onChange: (
       {section.imageId ? (
         <>
           <img
-            className="section__image"
+            className={`section__image section__image--${section.size}`}
             src={imageUrl(section.imageId)}
             alt={section.alt}
             // Pictures added before sizes were kept get theirs filled in here, the next time the post is saved.
@@ -149,6 +149,18 @@ function ImageEditor({ section, onChange }: { section: ImageSection; onChange: (
               if (section.width === null && naturalWidth > 0 && naturalHeight > 0) onChange({ width: naturalWidth, height: naturalHeight })
             }}
           />
+          <div className="field">
+            <span className="field__label" id={`size-${section.key}`}>Size in the article</span>
+            <div className="size-pick" role="radiogroup" aria-labelledby={`size-${section.key}`}>
+              {IMAGE_SIZES.map((size) => (
+                <button key={size} type="button" role="radio" aria-checked={section.size === size}
+                  className={`size-pick__option${section.size === size ? ' size-pick__option--on' : ''}`} onClick={() => onChange({ size })}>
+                  {imageSizeLabels[size]}
+                </button>
+              ))}
+            </div>
+            <p className="field__hint">Only how wide it shows. The picture keeps its full quality, and phones always show it full width.</p>
+          </div>
           <div className="field">
             <label htmlFor={`alt-${section.key}`}>Describe the picture</label>
             <input id={`alt-${section.key}`} value={section.alt} maxLength={MAX_CAPTION} onChange={(e) => onChange({ alt: e.target.value })} />
