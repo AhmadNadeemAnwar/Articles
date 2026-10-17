@@ -51,9 +51,12 @@ export function PrivacyPage() {
             offered again on that article.
           </li>
           <li>
-            <strong>Reader counts.</strong> Opening an article adds one to its reader count, at most once a day. To
-            avoid counting you twice, the same scrambled id is kept with the article for up to a day and then deleted.
-            The count itself is just a number.
+            <strong>Reader counts.</strong> Opening an article adds one to its reader count, at most once a day. So that
+            you are not counted twice, and so the author can see how many readers come back, the scrambled id is kept with
+            the article for up to 90 days and then deleted. Alongside each day's count the site keeps three coarse facts,
+            as totals only and never linked to you: your country (a two-letter code from Cloudflare, never your address),
+            whether you read on a phone, tablet or computer, and the name of the site you came from (such as google.com,
+            never the full link).
           </li>
           <li>
             <strong>Visit statistics.</strong> Cloudflare Web Analytics counts page visits without cookies and without

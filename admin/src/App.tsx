@@ -9,6 +9,7 @@ import { ActivityPage } from './pages/ActivityPage'
 import { CommentsPage } from './pages/CommentsPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { FeedbackPage } from './pages/FeedbackPage'
+import { ViewsPage } from './pages/ViewsPage'
 import { LoginPage } from './pages/LoginPage'
 import { PortfolioEditPage } from './pages/PortfolioEditPage'
 import { PortfolioPage } from './pages/PortfolioPage'
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="/posts/:id/edit" element={editor} />
               <Route path="/comments" element={<CommentsPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/views" element={<ViewsPage />} />
               <Route path="/tags" element={<TagsPage />} />
               <Route path="/subscribers" element={<SubscribersPage />} />
               <Route path="/site" element={<SitePage />} />

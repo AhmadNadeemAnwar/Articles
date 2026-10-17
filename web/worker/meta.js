@@ -98,6 +98,12 @@ export function postPathFor(post) {
   return `/read/${slug}`
 }
 
+/** A two-letter country code as Cloudflare gives it, or empty. Its "XX" (unknown) and "T1" (Tor) say nothing useful. */
+export function countryCode(value) {
+  const code = typeof value === 'string' ? value.trim().toUpperCase() : ''
+  return /^[A-Z]{2}$/.test(code) && code !== 'XX' ? code : ''
+}
+
 /** The picture id in a /media/<id> address, or null if the address is not exactly that shape. */
 export function mediaIdFromPath(pathname) {
   const match = MEDIA_PATH.exec(pathname)

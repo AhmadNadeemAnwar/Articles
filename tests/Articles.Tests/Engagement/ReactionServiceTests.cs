@@ -384,19 +384,23 @@ public class ReactionServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Yesterdays_records_of_who_read_what_are_discarded()
+    public async Task Records_of_who_read_what_are_kept_for_90_days_and_then_discarded()
     {
         var (postId, _) = await PublishedPostAsync();
         await _reactions.RecordViewAsync(postId, Visitor(), Browser, null);
         await _reactions.RecordViewAsync(postId, Visitor(), Browser, null);
-        _fixture.Db.PostViews.Should().HaveCount(2);
+
+        _clock.Advance(TimeSpan.FromDays(ReactionService.KeepViewsDays));
+        await _reactions.RecordViewAsync(postId, Visitor(), Browser, null);
+        _fixture.Db.ChangeTracker.Clear();
+        _fixture.Db.PostViews.Should().HaveCount(3, "kept long enough to tell a returning reader from a new one");
 
         _clock.Advance(TimeSpan.FromDays(1));
         await _reactions.RecordViewAsync(postId, Visitor(), Browser, null);
 
         _fixture.Db.ChangeTracker.Clear();
-        _fixture.Db.PostViews.Should().HaveCount(1, "only today's record is needed to avoid double counting");
-        (await StoredAsync(postId)).ViewCount.Should().Be(3, "the count itself is kept");
+        _fixture.Db.PostViews.Should().HaveCount(2, "records older than 90 days are gone");
+        (await StoredAsync(postId)).ViewCount.Should().Be(4, "the count itself is kept");
     }
 
     [Fact]

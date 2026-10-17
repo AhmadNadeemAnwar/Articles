@@ -285,6 +285,39 @@ namespace Articles.Infrastructure.Persistence.Migrations
                     b.ToTable("post_views", (string)null);
                 });
 
+            modelBuilder.Entity("Articles.Domain.Entities.PostViewStat", b =>
+                {
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Device")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Returning")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PostId", "Day", "Country", "Device", "Source", "Returning");
+
+                    b.HasIndex("Day");
+
+                    b.ToTable("post_view_stats", (string)null);
+                });
+
             modelBuilder.Entity("Articles.Domain.Entities.Reaction", b =>
                 {
                     b.Property<Guid>("PostId")
@@ -648,6 +681,15 @@ namespace Articles.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Articles.Domain.Entities.PostView", b =>
+                {
+                    b.HasOne("Articles.Domain.Entities.Post", null)
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Articles.Domain.Entities.PostViewStat", b =>
                 {
                     b.HasOne("Articles.Domain.Entities.Post", null)
                         .WithMany()

@@ -13,8 +13,21 @@ public interface IReactionRepository
     Task AddViewAsync(PostView view, CancellationToken ct = default);
     Task<bool> HasViewAsync(Guid postId, string visitorKey, int day, CancellationToken ct = default);
 
-    /// <summary>Forgets who read what before the given day; only today's record is needed to avoid double counting.</summary>
+    /// <summary>Whether this reader opened the post on any earlier day still on record.</summary>
+    Task<bool> HasViewBeforeAsync(Guid postId, string visitorKey, int day, CancellationToken ct = default);
+
+    /// <summary>
+    /// Forgets who read what before the given day. Kept long enough to tell a returning reader from a new one, and no
+    /// longer: the record is only a scrambled id, a post and a day.
+    /// </summary>
     Task DeleteViewsBeforeAsync(int day, CancellationToken ct = default);
+
+    /// <summary>The day's count for this combination of facts, tracked so it can be added to, or null if there is none yet.</summary>
+    Task<PostViewStat?> FindStatAsync(Guid postId, int day, string country, string device, string source, bool returning, CancellationToken ct = default);
+    Task AddStatAsync(PostViewStat stat, CancellationToken ct = default);
+
+    /// <summary>Every count from <paramref name="fromDay"/> on, for one post or (with null) all of them.</summary>
+    Task<IReadOnlyList<PostViewStat>> GetStatsAsync(Guid? postId, int fromDay, CancellationToken ct = default);
 
     /// <summary>
     /// Saves pending changes. Returns false, saving nothing, when another request for the same visitor

@@ -43,6 +43,23 @@ public class ReactionConfiguration : IEntityTypeConfiguration<Reaction>
     }
 }
 
+public class PostViewStatConfiguration : IEntityTypeConfiguration<PostViewStat>
+{
+    public void Configure(EntityTypeBuilder<PostViewStat> builder)
+    {
+        builder.ToTable("post_view_stats");
+        // One row per post, day and combination of facts; a view adds one to its row.
+        builder.HasKey(s => new { s.PostId, s.Day, s.Country, s.Device, s.Source, s.Returning });
+
+        builder.Property(s => s.Country).IsRequired().HasMaxLength(PostViewStat.CountryLength);
+        builder.Property(s => s.Device).IsRequired().HasMaxLength(10);
+        builder.Property(s => s.Source).IsRequired().HasMaxLength(PostViewStat.MaxSourceLength);
+
+        builder.HasOne<Post>().WithMany().HasForeignKey(s => s.PostId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(s => s.Day);
+    }
+}
+
 public class PostViewConfiguration : IEntityTypeConfiguration<PostView>
 {
     public void Configure(EntityTypeBuilder<PostView> builder)

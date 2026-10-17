@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import type { DailyCount, TopPost } from '../api/types'
+import type { TopPost } from '../api/types'
 import { useAsync } from '../hooks/useAsync'
 import { ErrorNote, PageHeader, Spinner, StatTile, formatNumber, publicPostUrl } from '../components/ui'
+import { BarChart } from '../components/BarChart'
 
 export function DashboardPage() {
   const stats = useAsync(() => api.stats(), [])
@@ -35,7 +36,7 @@ export function DashboardPage() {
 
           <section className="panel">
             <h2>Posts published, last 30 days</h2>
-            <BarChart days={stats.data.publishedLast30Days} />
+            <BarChart days={stats.data.publishedLast30Days} what="published" summary={publishedSummary(stats.data.publishedLast30Days)} />
           </section>
 
           <div className="two-col">
@@ -49,6 +50,13 @@ export function DashboardPage() {
 }
 
 /** "1 view", "14 views", "1 clap". */
+/** What the publishing chart says in words, for everyone and for screen readers. */
+export function publishedSummary(days: { count: number }[]): string {
+  const total = days.reduce((sum, d) => sum + d.count, 0)
+  const max = Math.max(0, ...days.map((d) => d.count))
+  return total === 0 ? 'No posts published in this period.' : `${total} published in the last ${days.length} days; the busiest day had ${max}.`
+}
+
 export function countLabel(count: number, metric: 'views' | 'claps'): string {
   return `${formatNumber(count)} ${count === 1 ? metric.slice(0, -1) : metric}`
 }
@@ -82,37 +90,3 @@ function TopList({ title, posts, metric }: { title: string; posts: TopPost[]; me
   )
 }
 
-/** A plain SVG chart: no library, and a text summary for screen readers since the bars are not readable by them. */
-function BarChart({ days }: { days: DailyCount[] }) {
-  const max = Math.max(1, ...days.map((d) => d.count))
-  const total = days.reduce((sum, d) => sum + d.count, 0)
-  const width = 600
-  const height = 120
-  const slot = width / days.length
-
-  return (
-    <figure className="chart">
-      <svg viewBox={`0 0 ${width} ${height + 18}`} role="img" aria-label={`${total} posts published in the last 30 days`} preserveAspectRatio="none">
-        {days.map((day, i) => {
-          const barHeight = day.count === 0 ? 2 : Math.max(6, (day.count / max) * height)
-          return (
-            <rect
-              key={day.date}
-              x={i * slot + 2}
-              y={height - barHeight}
-              width={Math.max(slot - 4, 2)}
-              height={barHeight}
-              rx={2}
-              className={day.count === 0 ? 'bar bar--empty' : 'bar'}
-            >
-              <title>{`${day.date}: ${day.count} published`}</title>
-            </rect>
-          )
-        })}
-        <text x={0} y={height + 14} className="axis">{days[0]?.date}</text>
-        <text x={width} y={height + 14} textAnchor="end" className="axis">{days[days.length - 1]?.date}</text>
-      </svg>
-      <figcaption className="muted">{total === 0 ? 'No posts published in this period.' : `${total} published in the last ${days.length} days; the busiest day had ${max}.`}</figcaption>
-    </figure>
-  )
-}

@@ -1,5 +1,6 @@
 import { getVisitorId } from '../lib/visitor'
 import type { Paged, PostDetail, PostSort, PostSummary, Profile, ReactionKind, ReactionState, Site, Tag } from './types'
+import { entrySource, viewerCountry } from '../lib/viewContext'
 
 // Empty in development, where Vite proxies /api to the local API. In production the SPA and the
 // API live on different origins, so the build bakes in the API's absolute URL.
@@ -21,12 +22,13 @@ export class ApiError extends Error {
  * @param asVisitor Sends this browser's random visitor id. Only reactions and view counting need
  * it, so it is left off everything else and ordinary reads stay identical for every reader.
  */
-async function request<T>(method: string, path: string, asVisitor = false, body?: unknown): Promise<T> {
+async function request<T>(method: string, path: string, asVisitor = false, body?: unknown, extraHeaders: Record<string, string> = {}): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method,
     headers: {
       ...(asVisitor ? { 'X-Visitor-Id': getVisitorId() } : {}),
       ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...extraHeaders,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
@@ -99,7 +101,14 @@ export const api = {
     request<ReactionState>('POST', `/api/v1/posts/${id}/reactions/${kind}`, true),
 
   /** Tells the API a reader has this post open. Counted at most once per browser per day. */
-  recordView: (id: string) => request<void>('POST', `/api/v1/posts/${id}/view`, true),
+  recordView: async (id: string) => {
+    // Two coarse facts for the owner's daily figures; each is left out when it is not known.
+    const [country, source] = [await viewerCountry(), entrySource()]
+    return request<void>('POST', `/api/v1/posts/${id}/view`, true, undefined, {
+      ...(country ? { 'X-Viewer-Country': country } : {}),
+      ...(source ? { 'X-Referrer-Host': source } : {}),
+    })
+  },
 
   /** Sends a confirmation email. The answer is the same whether or not the address was already subscribed. */
   subscribe: (email: string) => request<void>('POST', '/api/v1/subscribers', false, { email }),

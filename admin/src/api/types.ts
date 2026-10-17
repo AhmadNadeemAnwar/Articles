@@ -228,6 +228,24 @@ export interface PortfolioEntry {
   body: string
 }
 
+/** One fact about readers and how many had it: a country code, "phone"/"tablet"/"computer", or a site name. Empty means not known. */
+export interface ViewShare {
+  key: string
+  views: number
+}
+
+/** Readers per day for one post or all of them, and the coarse facts about them. Counts only. */
+export interface ViewStats {
+  days: number
+  views: number
+  returning: number
+  daily: { date: string; views: number; returning: number }[]
+  countries: ViewShare[]
+  devices: ViewShare[]
+  sources: ViewShare[]
+  topPosts: { postId: string; title: string; slug: string | null; views: number }[]
+}
+
 /** A reader's anonymous note after reacting to a post. `liked` holds choice keys such as "useful". */
 export interface ReaderFeedback {
   id: string

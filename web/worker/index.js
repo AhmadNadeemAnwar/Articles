@@ -9,6 +9,7 @@
 //   /p/<post>      where posts used to live: sent on to /read/<post>
 //   /media/<id>    a picture from a post, fetched from the API once and then kept by Cloudflare,
 //                  so readers are not left waiting on the API for pictures
+//   /__country     the reader's two-letter country code, for the owner's daily figures (never the address)
 //   /sitemap.xml   every published post, for search engines
 //   /rss.xml       the newest posts, for feed readers
 //   /latest.json   the three newest posts, for the portfolio's "Latest writing" (readable only from there)
@@ -20,7 +21,7 @@
 // Free plan allowance: 100,000 runs a day. One run per post page opened, plus feed and sitemap fetches.
 
 import {
-  IMAGE_TYPES, buildLatest, buildRss, buildSitemap, corsHeadersFor, describePost, headTags, isStale, mediaIdFromPath, oldPostRedirect, slugFromPath, timeoutFor,
+  IMAGE_TYPES, buildLatest, countryCode, buildRss, buildSitemap, corsHeadersFor, describePost, headTags, isStale, mediaIdFromPath, oldPostRedirect, slugFromPath, timeoutFor,
 } from './meta.js'
 
 const LIST_TIMEOUT_MS = 20000
@@ -46,6 +47,12 @@ export default {
 
     if (request.method === 'GET' || request.method === 'HEAD') {
       try {
+        // The reader's country as Cloudflare sees it, for the owner's daily figures: two letters, never an address.
+        if (url.pathname === '/__country') {
+          return new Response(JSON.stringify({ country: countryCode(request.cf?.country) }), {
+            headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' },
+          })
+        }
         if (url.pathname === '/sitemap.xml') {
           return await cachedDocument(request, ctx, 'application/xml; charset=utf-8', async () => buildSitemap(await listPosts(site, MAX_LISTED_POSTS), site.siteOrigin))
         }

@@ -163,7 +163,8 @@ public class PostsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RecordView(Guid id, CancellationToken ct)
     {
-        await _reactions.RecordViewAsync(id, VisitorId, Request.Headers.UserAgent.ToString(), _currentUser.UserId, ct);
+        await _reactions.RecordViewAsync(id, VisitorId, Request.Headers.UserAgent.ToString(), _currentUser.UserId, ct,
+            country: Request.Headers["X-Viewer-Country"].ToString(), referrerHost: Request.Headers["X-Referrer-Host"].ToString());
         return NoContent();
     }
 

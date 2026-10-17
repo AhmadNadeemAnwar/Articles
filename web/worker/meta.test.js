@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  DEFAULT_SHARE_IMAGE, FETCHER_TIMEOUT_MS, LATEST_COUNT, LATEST_READERS, buildLatest, corsHeadersFor, postPathFor, PREVIEW_FRESH_MS, READER_TIMEOUT_MS, absoluteImage, firstImageId, isStale, mediaIdFromPath, oldPostRedirect, buildRss, buildSitemap, describePost, escapeText, headTags, plainText,
+  DEFAULT_SHARE_IMAGE, FETCHER_TIMEOUT_MS, LATEST_COUNT, LATEST_READERS, buildLatest, corsHeadersFor, countryCode, postPathFor, PREVIEW_FRESH_MS, READER_TIMEOUT_MS, absoluteImage, firstImageId, isStale, mediaIdFromPath, oldPostRedirect, buildRss, buildSitemap, describePost, escapeText, headTags, plainText,
   slugFromPath, summarise, timeoutFor,
 } from './meta.js'
 
@@ -98,6 +98,14 @@ describe('slugFromPath', () => {
       expect(slugFromPath(path)).toBeNull()
     },
   )
+})
+
+describe('countryCode', () => {
+  it('keeps a two-letter code and nothing else', () => {
+    expect(countryCode('MY')).toBe('MY')
+    expect(countryCode('pk')).toBe('PK')
+    for (const odd of ['XX', '', undefined, null, 'MYS', 42, '1.2.3.4']) expect(countryCode(odd)).toBe('')
+  })
 })
 
 describe('postPathFor', () => {

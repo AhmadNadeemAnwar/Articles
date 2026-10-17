@@ -19,7 +19,10 @@ public interface IReactionService
     Task<ReactionState> ToggleAsync(Guid postId, string? visitorId, string? kind, CancellationToken ct = default);
 
     /// <summary>Counts one read per visitor per post per day. Returns whether this call was counted.</summary>
-    Task<bool> RecordViewAsync(Guid postId, string? visitorId, string? userAgent, Guid? signedInUserId, CancellationToken ct = default);
+    /// <param name="country">Two-letter country code Cloudflare gave the page, if any. Only the code is kept, never an address.</param>
+    /// <param name="referrerHost">The site the reader came from, as the browser reported it. Only its bare name is kept.</param>
+    Task<bool> RecordViewAsync(Guid postId, string? visitorId, string? userAgent, Guid? signedInUserId, CancellationToken ct = default,
+        string? country = null, string? referrerHost = null);
 }
 
 public sealed class ReactionService : IReactionService
@@ -69,7 +72,14 @@ public sealed class ReactionService : IReactionService
         return await StateAsync(post, key, ct);
     }
 
-    public async Task<bool> RecordViewAsync(Guid postId, string? visitorId, string? userAgent, Guid? signedInUserId, CancellationToken ct = default)
+    /// <summary>How long a scrambled reader id is kept per post, to tell a returning reader from a new one.</summary>
+    public const int KeepViewsDays = 90;
+
+    /// <summary>A reader arriving from one of these (or a subdomain) moved within the owner's own sites, so counts as direct.</summary>
+    public static readonly IReadOnlyList<string> OwnSites = ["ahmadnadeem.dev", "localhost"];
+
+    public async Task<bool> RecordViewAsync(Guid postId, string? visitorId, string? userAgent, Guid? signedInUserId, CancellationToken ct = default,
+        string? country = null, string? referrerHost = null)
     {
         if (BotDetector.IsBot(userAgent)) return false;
         if (VisitorKey.From(visitorId) is not { } key) return false;
@@ -85,9 +95,17 @@ public sealed class ReactionService : IReactionService
 
         await _reactions.AddViewAsync(new PostView(postId, key, today), ct);
         post.RegisterView();
+
+        // The day's counts: only coarse facts, and nothing that leads back to this reader.
+        var returning = await _reactions.HasViewBeforeAsync(postId, key, today, ct);
+        var (place, device, source) = (ViewFacts.Country(country), ViewFacts.Device(userAgent), ViewFacts.Source(referrerHost, OwnSites));
+        var stat = await _reactions.FindStatAsync(postId, today, place, device, source, returning, ct);
+        if (stat is null) await _reactions.AddStatAsync(new PostViewStat(postId, today, place, device, source, returning), ct);
+        else stat.Add();
+
         if (!await _reactions.TrySaveAsync(ct)) return false;
 
-        await _reactions.DeleteViewsBeforeAsync(today, ct);
+        await _reactions.DeleteViewsBeforeAsync(today - KeepViewsDays, ct);
         return true;
     }
 
